@@ -4,6 +4,7 @@ class CN_MachineConfigManager
 {
     protected static const string CONFIG_DIRECTORY = "$profile:ColdNight_SRV_Data\\Mine_Mashines\\";
     protected static ref CN_MachineConfigManager s_Instance;
+    protected ref array<string> m_MachineClasses;
 
     static CN_MachineConfigManager GetInstance()
     {
@@ -13,10 +14,18 @@ class CN_MachineConfigManager
         return s_Instance;
     }
 
+    void CN_MachineConfigManager()
+    {
+        m_MachineClasses = new array<string>;
+        m_MachineClasses.Insert("CN_OreExtractor");
+    }
+
     void Initialize()
     {
         MakeDirectory(CONFIG_DIRECTORY);
-        EnsureConfig("CN_OreExtractor");
+
+        foreach (string machineClassName : m_MachineClasses)
+            EnsureConfig(machineClassName);
     }
 
     protected string GetConfigPath(string machineClassName)
@@ -38,13 +47,9 @@ class CN_MachineConfigManager
         string errorMessage;
 
         if (JsonFileLoader<CN_MachineConfig>.SaveFile(path, config, errorMessage))
-        {
             Print("[CN_MiningMachines] Конфигурация создана: " + path);
-        }
         else
-        {
             ErrorEx("[CN_MiningMachines] Ошибка создания конфигурации: " + path + ". " + errorMessage);
-        }
     }
 
     CN_MachineConfig LoadConfig(string machineClassName)
@@ -60,7 +65,7 @@ class CN_MachineConfigManager
             if (!FileExist(path))
             {
                 ErrorEx("[CN_MiningMachines] Конфигурация не найдена и не создана: " + path);
-                return config;
+                return null;
             }
         }
 
