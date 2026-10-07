@@ -2,6 +2,15 @@
 
 ## 07.10.2026
 
+### API-проверка
+- Партикл обработки заменён на `ParticleList.POWER_GENERATOR_SMOKE`.
+- Использован ванильный вызов `Particle.PlayOnObject()`.
+- Подтверждены `SetSynchDirty()`, `MakeDirectory()`, `InventorySlots.GetSlotName()`, `GetCurrentInventoryLocation()`, `CanReleaseAttachment()` и серверный `OnExecuteServer()`.
+- Подтверждено использование `EnergyManager` и `ComponentEnergyManager` в ванильном API.
+- Проверка `ActionConstructor.RegisterActions()` подтверждена по ванильному `ActionConstructor`.
+
+
+
 ### Инициализация конфигурации станков
 - Изменено создание JSON-конфигураций: новые конфиги создаются при запуске сервера, а не при первом появлении станка в мире.
 - В `CN_MachineConfigManager` добавлен метод `Initialize()`.
