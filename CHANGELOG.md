@@ -11,3 +11,8 @@
 - Инициализация перенесена в стандартный для DayZ файл `Scripts/5_Mission/MissionServer.c`.
 - Удалён отдельный `CN_MiningMachinesServer.c` из `4_World`, поскольку для инициализации через `MissionServer` он не нужен.
 - `EEInit()` серверного расширения `CN_MiningMachineBase` используется для загрузки конфигурации конкретного станка.
+
+### Подключение 5_Mission
+- В `CN_MiningMachines_Server/config.cpp` добавлена зависимость от модуля `Mission`.
+- Добавлен `missionScriptModule` с путём `CN_MiningMachines_Server/Scripts/5_Mission`.
+- Теперь `MissionServer.c` действительно загружается серверным PBO.
