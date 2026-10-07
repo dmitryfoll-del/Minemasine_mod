@@ -1,12 +1,13 @@
-# Minemasine_mod — Change Log
+# Minemasine_mod — Журнал изменений
 
-## 2026-10-07
+## 07.10.2026
 
-### Configuration initialization
-- Changed CN_MachineConfigManager so machine JSON files are created during server startup instead of first machine initialization.
-- Added CN_MachineConfigManager.Initialize().
-- Added initial machine registration for CN_OreExtractor.
-- The configuration directory is created during server startup: `$profile:ColdNight_SRV_Data\\Mine_Mashines\\`.
-- Existing JSON files are preserved and are loaded normally.
-- Added CN_MiningMachines_Server/Scripts/4_World/CN_MiningMachinesServer.c to initialize the configuration manager from MissionServer.OnInit().
-- Kept EEInit() in the server-side machine class responsible only for loading the already-created machine configuration.
+### Инициализация конфигурации станков
+- Изменено создание JSON-конфигураций: новые конфиги создаются при запуске сервера, а не при первом появлении станка в мире.
+- В `CN_MachineConfigManager` добавлен метод `Initialize()`.
+- При запуске сервера автоматически проверяется конфигурация `CN_OreExtractor`.
+- Каталог `$profile:ColdNight_SRV_Data\\Mine_Mashines\\` создаётся при запуске сервера.
+- Уже существующие JSON-файлы не перезаписываются.
+- Инициализация перенесена в стандартный для DayZ файл `Scripts/5_Mission/MissionServer.c`.
+- Удалён отдельный `CN_MiningMachinesServer.c` из `4_World`, поскольку для инициализации через `MissionServer` он не нужен.
+- `EEInit()` серверного расширения `CN_MiningMachineBase` используется для загрузки конфигурации конкретного станка.
