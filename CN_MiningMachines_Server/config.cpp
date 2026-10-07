@@ -16,7 +16,7 @@ class CfgMods
         dir = "CN_MiningMachines_Server";
         name = "CN Mining Machines Server";
         type = "mod";
-        dependencies[] = {"World"};
+        dependencies[] = {"World", "Mission"};
 
         class defs
         {
@@ -24,6 +24,12 @@ class CfgMods
             {
                 value = "";
                 files[] = {"CN_MiningMachines_Server/Scripts/4_World"};
+            };
+
+            class missionScriptModule
+            {
+                value = "";
+                files[] = {"CN_MiningMachines_Server/Scripts/5_Mission"};
             };
         };
     };
