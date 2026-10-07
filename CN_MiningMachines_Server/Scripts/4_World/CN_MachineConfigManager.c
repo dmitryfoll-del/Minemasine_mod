@@ -13,15 +13,30 @@ class CN_MachineConfigManager
         return s_Instance;
     }
 
+    void Initialize()
+    {
+        MakeDirectory(CONFIG_DIRECTORY);
+        EnsureConfig("CN_OreExtractor");
+    }
+
     protected string GetConfigPath(string machineClassName)
     {
         return CONFIG_DIRECTORY + machineClassName + ".json";
     }
 
+    protected void EnsureConfig(string machineClassName)
+    {
+        string path = GetConfigPath(machineClassName);
+
+        if (FileExist(path))
+            return;
+
+        CN_MachineConfig config = new CN_MachineConfig();
+        JsonFileLoader<CN_MachineConfig>.JsonSaveFile(path, config);
+    }
+
     CN_MachineConfig LoadConfig(string machineClassName)
     {
-        MakeDirectory(CONFIG_DIRECTORY);
-
         string path = GetConfigPath(machineClassName);
         CN_MachineConfig config = new CN_MachineConfig();
 
@@ -31,7 +46,8 @@ class CN_MachineConfigManager
             return config;
         }
 
-        JsonFileLoader<CN_MachineConfig>.JsonSaveFile(path, config);
+        EnsureConfig(machineClassName);
+        JsonFileLoader<CN_MachineConfig>.JsonLoadFile(path, config);
         return config;
     }
 };
