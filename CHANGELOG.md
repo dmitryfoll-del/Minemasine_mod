@@ -38,8 +38,8 @@
 - Для текущей версии зарегистрирован `CN_OreExtractor`.
 
 ### Действие запуска
-- Убрана дублирующая регистрация `ActionStartRecycler` через `CN_MiningMachineBase.SetActions()`.
-- Оставлена стандартная регистрация через `ActionConstructor.RegisterActions()`.
+- Восстановлена регистрация `ActionStartRecycler` через `CN_MiningMachineBase.SetActions()`.
+- Регистрация через `ActionConstructor.RegisterActions()` сохранена.
 - Серверные вызовы в общем файле действия защищены `#ifdef DZ_SERVER`.
 - Удалён отдельный серверный `ActionStartRecyclerServer.c`, поскольку отдельное модифицирование действия больше не требуется.
 
