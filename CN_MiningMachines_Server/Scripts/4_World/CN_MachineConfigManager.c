@@ -29,26 +29,49 @@ class CN_MachineConfigManager
         string path = GetConfigPath(machineClassName);
 
         if (FileExist(path))
+        {
+            Print("[CN_MiningMachines] Конфигурация инициализирована: " + path);
             return;
+        }
 
         CN_MachineConfig config = new CN_MachineConfig();
-        JsonFileLoader<CN_MachineConfig>.JsonSaveFile(path, config);
+        string errorMessage;
+
+        if (JsonFileLoader<CN_MachineConfig>.SaveFile(path, config, errorMessage))
+        {
+            Print("[CN_MiningMachines] Конфигурация создана: " + path);
+        }
+        else
+        {
+            ErrorEx("[CN_MiningMachines] Ошибка создания конфигурации: " + path + ". " + errorMessage);
+        }
     }
 
     CN_MachineConfig LoadConfig(string machineClassName)
     {
         string path = GetConfigPath(machineClassName);
         CN_MachineConfig config = new CN_MachineConfig();
+        string errorMessage;
 
-        if (FileExist(path))
+        if (!FileExist(path))
         {
-            JsonFileLoader<CN_MachineConfig>.JsonLoadFile(path, config);
+            EnsureConfig(machineClassName);
+
+            if (!FileExist(path))
+            {
+                ErrorEx("[CN_MiningMachines] Конфигурация не найдена и не создана: " + path);
+                return config;
+            }
+        }
+
+        if (JsonFileLoader<CN_MachineConfig>.LoadFile(path, config, errorMessage))
+        {
+            Print("[CN_MiningMachines] Конфигурация загружена: " + path);
             return config;
         }
 
-        EnsureConfig(machineClassName);
-        JsonFileLoader<CN_MachineConfig>.JsonLoadFile(path, config);
-        return config;
+        ErrorEx("[CN_MiningMachines] Конфигурация имеет ошибку заполнения: " + path + ". " + errorMessage);
+        return null;
     }
 };
 
