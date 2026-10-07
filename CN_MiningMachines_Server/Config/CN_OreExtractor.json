@@ -1,9 +1,0 @@
-{
-    "ProcessTimeSeconds": 2.0,
-    "InputClass": "CN_RawOre",
-    "OutputClass": "CN_ProcessedOre",
-    "RareClass": "CN_RareOre",
-    "WasteClass": "CN_OreWaste",
-    "RareChance": 5.0,
-    "WasteChance": 10.0
-}
