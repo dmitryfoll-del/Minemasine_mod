@@ -27,7 +27,9 @@ class ActionStartRecycler : ActionInteractBase
 
     override void OnExecuteServer(ActionData action_data)
     {
+        #ifdef DZ_SERVER
         CN_MiningMachineBase machine = CN_MiningMachineBase.Cast(action_data.m_Target.GetObject());
         if (machine) machine.Server_StartProcess();
+        #endif
     }
 };
