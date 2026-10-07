@@ -57,7 +57,7 @@ class CN_MiningMachineBase extends ItemBase
         m_EffectsActive = true;
         m_ProcessingSound = SEffectManager.PlaySound("powerGeneratorLoop_SoundSet", GetPosition());
         if (m_ProcessingSound) m_ProcessingSound.SetSoundAutodestroy(false);
-        m_ProcessingParticle = ParticleManager.GetInstance().PlayOnObject(ParticleList.BARREL_SMOKE, this);
+        m_ProcessingParticle = Particle.PlayOnObject(ParticleList.POWER_GENERATOR_SMOKE, this);
     }
 
     protected void StopProcessingEffects()
