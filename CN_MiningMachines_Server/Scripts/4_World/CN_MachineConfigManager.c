@@ -22,7 +22,7 @@ class CN_MachineConfigManager
 
     void Initialize()
     {
-        MakeDirectory(CONFIG_DIRECTORY);
+        if (!FileExist(CONFIG_DIRECTORY))\n            MakeDirectory(CONFIG_DIRECTORY);
 
         foreach (string machineClassName : m_MachineClasses)
             EnsureConfig(machineClassName);
