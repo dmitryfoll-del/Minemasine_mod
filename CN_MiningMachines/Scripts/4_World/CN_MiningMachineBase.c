@@ -12,12 +12,6 @@ class CN_MiningMachineBase extends ItemBase
         RegisterNetSyncVariableBool("m_IsProcessing");
     }
 
-    override void SetActions()
-    {
-        super.SetActions();
-        AddAction(ActionStartRecycler);
-    }
-
     bool IsProcessing() { return m_IsProcessing; }
 
     bool IsPowered()
