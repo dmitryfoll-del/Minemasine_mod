@@ -5,7 +5,7 @@ class CfgPatches
         units[] = {};
         weapons[] = {};
         requiredVersion = 0.1;
-        requiredAddons[] = {"DZ_Data", "DZ_Scripts", "CN_MiningMachines"};
+        requiredAddons[] = {"DZ_Data", "CN_MiningMachines"};
     };
 };
 
@@ -14,8 +14,7 @@ class CfgMods
     class CN_MiningMachines_Server
     {
         dir = "CN_MiningMachines_Server";
-        picture = "";
-        action = "";
+        name = "CN Mining Machines Server";
         type = "mod";
         dependencies[] = {"World"};
 
@@ -24,7 +23,7 @@ class CfgMods
             class worldScriptModule
             {
                 value = "";
-                files[] = {"CN_MiningMachines_Server/Scripts/4_World/Server"};
+                files[] = {"CN_MiningMachines_Server/Scripts/4_World"};
             };
         };
     };
