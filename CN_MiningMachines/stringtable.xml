@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Localization>
+	<Project name="CN_MiningMachines">
+		<Package name="Mod_Strings">
+			<!-- Slots -->
+			<Key ID="STR_CN_Slot_RecycleInput">
+				<English>Input</English>
+				<Russian>Вход</Russian>
+				<German>Eingang</German>
+				<French>Entrée</French>
+				<Czech>Vstup</Czech>
+			</Key>
+			<Key ID="STR_CN_Slot_RecycleOutput">
+				<English>Output</English>
+				<Russian>Выход</Russian>
+				<German>Ausgang</German>
+				<French>Sortie</French>
+				<Czech>Výstup</Czech>
+			</Key>
+			<Key ID="STR_CN_Slot_RecycleRare">
+				<English>Rare</English>
+				<Russian>Редкое</Russian>
+				<German>Selten</German>
+				<French>Rare</French>
+				<Czech>Vzácné</Czech>
+			</Key>
+
+			<!-- GUI Descriptions -->
+			<Key ID="STR_CN_GUI_RecycleInput_Desc">
+				<English>Raw material</English>
+				<Russian>Сырьё</Russian>
+				<German>Rohmaterial</German>
+				<French>Matière première</French>
+				<Czech>Surovina</Czech>
+			</Key>
+			<Key ID="STR_CN_GUI_RecycleOutput_Desc">
+				<English>Main product</English>
+				<Russian>Основной продукт</Russian>
+				<German>Hauptprodukt</German>
+				<French>Produit principal</French>
+				<Czech>Hlavní produkt</Czech>
+			</Key>
+			<Key ID="STR_CN_GUI_RecycleRare_Desc">
+				<English>Rare product</English>
+				<Russian>Редкий продукт</Russian>
+				<German>Seltenes Produkt</German>
+				<French>Produit rare</French>
+				<Czech>Vzácný produkt</Czech>
+			</Key>
+
+			<!-- Items -->
+			<Key ID="STR_CN_MiningMachineBase_Name">
+				<English>Mining Machine</English>
+				<Russian>Добывающая машина</Russian>
+				<German>Bergbaumaschine</German>
+				<French>Machine minière</French>
+				<Czech>Těžební stroj</Czech>
+			</Key>
+			<Key ID="STR_CN_MiningMachineBase_Desc">
+				<English>Powered processing machine.</English>
+				<Russian>Производственная машина, работающая от электричества.</Russian>
+				<German>Elektrisch betriebene Verarbeitungsmaschine.</German>
+				<French>Machine de traitement alimentée en électricité.</French>
+				<Czech>Elektricky poháněný zpracovatelský stroj.</Czech>
+			</Key>
+			<Key ID="STR_CN_OreExtractor_Name">
+				<English>Ore Extractor</English>
+				<Russian>Экстрактор руды</Russian>
+				<German>Erzextraktor</German>
+				<French>Extracteur de minerai</French>
+				<Czech>Extraktor rudy</Czech>
+			</Key>
+			<Key ID="STR_CN_OreExtractor_Desc">
+				<English>Processes raw ore using external power.</English>
+				<Russian>Перерабатывает сырую руду, используя внешний источник питания.</Russian>
+				<German>Verarbeitet Roherz unter Verwendung externer Energie.</German>
+				<French>Traite le minerai brut à l'aide d'une alimentation externe.</French>
+				<Czech>Zpracovává syrovou rudu pomocí externího napájení.</Czech>
+			</Key>
+		</Package>
+	</Project>
+</Localization>
