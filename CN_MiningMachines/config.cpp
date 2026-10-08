@@ -34,21 +34,21 @@ class CfgSlots
     class Slot_RecycleInput
     {
         name = "RecycleInput";
-        displayName = "Input";
+        displayName = "$STR_CN_Slot_RecycleInput";
         ghostIcon = "set:dayz_inventory image:cat_common";
     };
 
     class Slot_RecycleOutput
     {
         name = "RecycleOutput";
-        displayName = "Output";
+        displayName = "$STR_CN_Slot_RecycleOutput";
         ghostIcon = "set:dayz_inventory image:cat_common";
     };
 
     class Slot_RecycleRare
     {
         name = "RecycleRare";
-        displayName = "Rare";
+        displayName = "$STR_CN_Slot_RecycleRare";
         ghostIcon = "set:dayz_inventory image:cat_common";
     };
 };
@@ -60,8 +60,8 @@ class CfgVehicles
     class CN_MiningMachineBase: ItemBase
     {
         scope = 0;
-        displayName = "Mining Machine";
-        descriptionShort = "Powered processing machine.";
+        displayName = "$STR_CN_MiningMachineBase_Name";
+        descriptionShort = "$STR_CN_MiningMachineBase_Desc";
         model = "\DZ\gear\containers\woodencrate.p3d";
         weight = 10000;
         itemSize[] = {5,5};
@@ -81,24 +81,24 @@ class CfgVehicles
         {
             class RecycleInput
             {
-                name = "Input";
-                description = "Raw material";
+                name = "$STR_CN_Slot_RecycleInput";
+                description = "$STR_CN_GUI_RecycleInput_Desc";
                 attachmentSlots[] = {"RecycleInput"};
                 icon = "set:dayz_inventory image:cat_common";
             };
 
             class RecycleOutput
             {
-                name = "Output";
-                description = "Main product";
+                name = "$STR_CN_Slot_RecycleOutput";
+                description = "$STR_CN_GUI_RecycleOutput_Desc";
                 attachmentSlots[] = {"RecycleOutput"};
                 icon = "set:dayz_inventory image:cat_common";
             };
 
             class RecycleRare
             {
-                name = "Rare";
-                description = "Rare product";
+                name = "$STR_CN_Slot_RecycleRare";
+                description = "$STR_CN_GUI_RecycleRare_Desc";
                 attachmentSlots[] = {"RecycleRare"};
                 icon = "set:dayz_inventory image:cat_common";
             };
@@ -108,7 +108,7 @@ class CfgVehicles
     class CN_OreExtractor: CN_MiningMachineBase
     {
         scope = 2;
-        displayName = "Ore Extractor";
-        descriptionShort = "Processes raw ore using external power.";
+        displayName = "$STR_CN_OreExtractor_Name";
+        descriptionShort = "$STR_CN_OreExtractor_Desc";
     };
 };
