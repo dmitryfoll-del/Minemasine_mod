@@ -82,6 +82,33 @@ class CfgLiquidDefinitions
 class CfgVehicles
 {
     class ItemBase;
+    class CanisterGasoline;
+
+    
+    
+    // Создаем правильный класс канистры для вашего мода
+    class CN_CrudeOilCanister: CanisterGasoline
+    {
+        scope = 2; // Предмет доступен в спавнере и типах (types.xml)
+        displayName = "#STR_CN_ITEM_CRUDE_OIL_CANISTER"; 
+        descriptionShort = "#STR_CN_ITEM_CRUDE_OIL_CANISTER_DESC"; 
+        
+        // Меняем цвет канистры на лету (dz текстура jerrycan)
+        hiddenSelectionsTextures[] = {"\dz\gear\containers\data\jerrycan_co.paa"}; 
+
+        // --- ВАНИЛЬНЫЙ СПОСОБ ИНИЦИАЛИЗАЦИИ ЖИДКОСТИ ---
+        // Задаем тип жидкости при спавне (ID Сырой нефти из вашего CN_LiquidTypes)
+        varLiquidTypeInit = 16777216; 
+
+        // Задаем изначальное количество жидкости (20 литров)
+        varQuantityInit = 0; 
+
+        // (Опционально) Если хотите, чтобы в ЭТУ канистру игроки могли наливать ТОЛЬКО нефть,
+        // раскомментируйте строчку ниже. Если оставить её закомментированной, в пустую канистру можно будет налить бензин или воду.
+        liquidContainerType = 16777216; 
+    };
+
+
 
     class CN_MiningMachineBase: ItemBase
     {
