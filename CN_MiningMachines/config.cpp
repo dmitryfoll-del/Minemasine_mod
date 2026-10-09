@@ -55,20 +55,20 @@ class CfgLiquidDefinitions
 {
     class Kerosene
     {
-        type = 8388608; // Наш ID из CN_LiquidTypes
-        displayName = "Керосин";
+        type = 8388608; 
+        displayName = "#STR_CN_LIQUID_KEROSENE"; // Ссылка на токен из stringtable.csv
         flammability = 30;
         class Nutrition
         {
             energy = 0;
             water = 0;
-            toxicity = 100; // Ядовито при питье
+            toxicity = 100;
         };
     };
     class CrudeOil
     {
-        type = 16777216; // Наш ID из CN_LiquidTypes
-        displayName = "Сырая нефть";
+        type = 16777216; 
+        displayName = "#STR_CN_LIQUID_CRUDE_OIL"; // Ссылка на токен из stringtable.csv
         flammability = 10;
         class Nutrition
         {
