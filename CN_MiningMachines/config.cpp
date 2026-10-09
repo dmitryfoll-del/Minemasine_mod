@@ -158,6 +158,36 @@ class CfgVehicles
             };
         };
     };
+
+    class CN_OilPump: CN_MiningMachineBase
+    {
+        scope = 2;
+        displayName = "Промышленный Нефтяной Насос";
+        descriptionShort = "Автоматический насос для добычи сырья. Работает ТОЛЬКО в непосредственной близости от нефтяных вышек. Требует питания.";
+        model = "\DZ\structures\furniture\kitchen\stove\stove.p3d"; // Замените на вашу модель насоса
+
+        // Для работы нужна только канистра на выход
+        attachments[] = {"RecycleOutput"};
+        
+        class GUIInventoryAttachmentsProps
+        {
+            class CN_ProcessingZones
+            {
+                name = "Выход продукции";
+                attachmentSlots[] = {"RecycleOutput"}; 
+            };
+        };
+
+        class EnergyManager
+        {
+            switchOnAtSpawn = 0;
+            isInteractive = 1;
+            hasIcon = 1;
+            plugType = 1; // Требует кабель питания
+            energyUsagePerSecond = 1.5; // Потребляет чуть больше энергии
+        };
+    };
+
     class CN_OilDistiller: CN_MiningMachineBase
     {
         scope = 2;
