@@ -162,8 +162,8 @@ class CfgVehicles
     class CN_OilPump: CN_MiningMachineBase
     {
         scope = 2;
-        displayName = "Промышленный Нефтяной Насос";
-        descriptionShort = "Автоматический насос для добычи сырья. Работает ТОЛЬКО в непосредственной близости от нефтяных вышек. Требует питания.";
+        displayName = "#STR_CN_VEHICLE_OIL_PUMP";
+        descriptionShort = "#STR_CN_VEHICLE_OIL_PUMP_DESC";
         model = "\DZ\structures\furniture\kitchen\stove\stove.p3d"; // Замените на вашу модель насоса
 
         // Для работы нужна только канистра на выход
