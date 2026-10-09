@@ -133,8 +133,8 @@ class CfgVehicles
     class CN_OilDistiller: CN_MiningMachineBase
     {
         scope = 2;
-        displayName = "Термический Дестиллятор Нефти";
-        descriptionShort = "Промышленный перегонный куб. Требует питания от сети И костра в топке.";
+        displayName = "#STR_CN_VEHICLE_OIL_DISTILLER"; // Ссылка на токен названия из stringtable.csv
+        descriptionShort = "#STR_CN_VEHICLE_OIL_DISTILLER_DESC"; // Ссылка на токен описания из stringtable.csv
         model = "\DZ\structures\furniture\kitchen\stove\stove.p3d";
 
         attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare", "Firewood", "WoodenStick"};
