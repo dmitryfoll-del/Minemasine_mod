@@ -1,4 +1,4 @@
-modded class CN_CrudeOilCanister
+class CN_CrudeOilCanister : CanisterGasoline
 {
     // Этот метод вызывается движком DayZ каждый раз, когда игрок пытается что-то залить в канистру
     override int GetLiquidContainerType()
