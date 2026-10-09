@@ -16,15 +16,13 @@ class CfgMods
         dir = "CN_MiningMachines";
         name = "CN Mining Machines";
         type = "mod";
-        dependencies[] = {"World"};
+        dependencies[] = {"Game", "World", "Mission"};
 
         class defs
         {
-            class worldScriptModule
-            {
-                value = "";
-                files[] = {"CN_MiningMachines/Scripts/4_World"};
-            };
+            class gameScriptModule { value = ""; files[] = {"CN_MiningMachines/Scripts/3_Game"}; };
+            class worldScriptModule { value = ""; files[] = {"CN_MiningMachines/Scripts/4_World"}; };
+            class missionScriptModule { value = ""; files[] = {"CN_MiningMachines/Scripts/5_Mission"}; };
         };
     };
 };
@@ -50,6 +48,34 @@ class CfgSlots
         name = "RecycleRare";
         displayName = "$STR_CN_Slot_RecycleRare";
         ghostIcon = "set:dayz_inventory image:cat_common";
+    };
+};
+
+class CfgLiquidDefinitions
+{
+    class Kerosene
+    {
+        type = 8388608; // Наш ID из CN_LiquidTypes
+        displayName = "Керосин";
+        flammability = 30;
+        class Nutrition
+        {
+            energy = 0;
+            water = 0;
+            toxicity = 100; // Ядовито при питье
+        };
+    };
+    class CrudeOil
+    {
+        type = 16777216; // Наш ID из CN_LiquidTypes
+        displayName = "Сырая нефть";
+        flammability = 10;
+        class Nutrition
+        {
+            energy = 0;
+            water = 0;
+            toxicity = 150;
+        };
     };
 };
 
@@ -104,7 +130,38 @@ class CfgVehicles
             };
         };
     };
+    class CN_OilDistiller: CN_MiningMachineBase
+    {
+        scope = 2;
+        displayName = "Термический Дестиллятор Нефти";
+        descriptionShort = "Промышленный перегонный куб. Требует питания от сети И костра в топке.";
+        model = "\DZ\structures\furniture\kitchen\stove\stove.p3d";
 
+        attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare", "Firewood", "WoodenStick"};
+        
+        class GUIInventoryAttachmentsProps
+        {
+            class CN_ProcessingZones
+            {
+                name = "Линии перегонки";
+                attachmentSlots[] = {"RecycleInput", "RecycleOutput", "RecycleRare"}; 
+            };
+            class CN_FireplaceZone
+            {
+                name = "Топка костра";
+                attachmentSlots[] = {"Firewood", "WoodenStick"};
+            };
+        };
+
+        class EnergyManager
+        {
+            switchOnAtSpawn = 0;
+            isInteractive = 1;
+            hasIcon = 1;
+            plugType = 1;
+            energyUsagePerSecond = 1.0; 
+        };
+    };
     class CN_OreExtractor: CN_MiningMachineBase
     {
         scope = 2;
