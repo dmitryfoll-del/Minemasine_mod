@@ -164,7 +164,7 @@ class CfgVehicles
         scope = 2;
         displayName = "#STR_CN_VEHICLE_OIL_PUMP";
         descriptionShort = "#STR_CN_VEHICLE_OIL_PUMP_DESC";
-        model = "\DZ\structures\furniture\kitchen\stove\stove.p3d"; // Замените на вашу модель насоса
+        model = "\CN_MiningMachines\cn_OilPump.p3d"; // Замените на вашу модель насоса
 
         // Для работы нужна только канистра на выход
         attachments[] = {"RecycleOutput"};
