@@ -62,4 +62,14 @@ class CN_OilPump : CN_MiningMachineBase
             m_AnimLoopActive = true;
         #endif
     }
+     // --- ДОБАВЛЯЕМ СВЯЗКУ С ЭКШЕНАМИ ---
+    override void SetActions()
+    {
+        super.SetActions(); // Наследуем базовые экшены (например, взять в руки, если разрешено)
+
+        // Регистрируем твои кастомные действия автоматизации для этого насоса.
+        // Замени имена классов экшенов на точные названия из твоего мода!
+        AddAction(ActionStartRecycler); // Появляется кнопка "Включить / Запустить"
+        AddAction(ActionStopRecycler);  // Появляется кнопка "Выключить / Остановить"
+    }
 }
