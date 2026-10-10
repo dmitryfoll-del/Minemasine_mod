@@ -1,5 +1,3 @@
-#ifdef DZ_SERVER
-
 modded class MissionServer
 {
     override void OnInit()
@@ -8,5 +6,3 @@ modded class MissionServer
         CN_MachineConfigManager.GetInstance().Initialize();
     }
 };
-
-#endif

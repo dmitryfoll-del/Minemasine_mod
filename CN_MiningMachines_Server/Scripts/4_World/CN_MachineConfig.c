@@ -1,17 +1,15 @@
-#ifdef DZ_SERVER
-
 class CN_MachineConfig
 {
     float ProcessTimeSeconds = 1.0;
+    float EnergyUsagePerSecond = 1.0; // ИСПРАВЛЕНО: Теперь переменная официально существует!
     string InputClass = "";
     string OutputClass = "";
     string RareClass = "";
     string WasteClass = "";
     float RareChance = 0.0;
     float WasteChance = 0.0;
-};
+}
 
-// А ниже вы создаете ОТДЕЛЬНЫЙ класс конфига специально для насоса:
 class CN_OilPumpConfig : CN_MachineConfig
 {
     ref array<string> OilDerrickClassnames;
@@ -25,5 +23,3 @@ class CN_OilPumpConfig : CN_MachineConfig
         OilDerrickCheckRadius = 15.0;
     }
 }
-
-#endif

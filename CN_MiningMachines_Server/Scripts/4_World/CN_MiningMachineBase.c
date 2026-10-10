@@ -1,9 +1,8 @@
-#ifdef DZ_SERVER
-
 modded class CN_MiningMachineBase
 {
     protected ref CN_MachineConfig m_ServerConfig;
-    protected Timer m_ProcessTimer;
+    // ИСПРАВЛЕНО: Добавлен обязательный сильный ref для таймера
+    protected ref Timer m_ProcessTimer;
 
     override void EEInit()
     {
@@ -140,6 +139,4 @@ modded class CN_MiningMachineBase
         Server_StopProcess();
         super.EEDelete(parent);
     }
-};
-
-#endif
+}
