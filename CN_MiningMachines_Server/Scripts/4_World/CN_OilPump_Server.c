@@ -1,12 +1,43 @@
 #ifdef DZ_SERVER
 
-class CN_OilPump : CN_MiningMachineBase
+modded class CN_OilPump
 {
+    // Проверка, идет ли ток от РАБОТАЮЩЕГО генератора
+    protected bool IsEnergySourceRunning()
+    {
+        CompEM energy_manager = GetCompEM();
+        if (!energy_manager)
+            return false;
+
+        if (!energy_manager.IsSwitchedOn())
+            return false;
+
+        EntityAI power_source = energy_manager.GetEnergySource();
+        if (!power_source)
+            return false; 
+
+        CompEM source_em = power_source.GetCompEM();
+        if (source_em)
+        {
+            // Если генератор заглушен или в нем нет топлива — тока нет
+            if (!source_em.IsSwitchedOn() || source_em.GetEnergy() <= 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Метод проверки условий для старта (вызывается из твоего ActionStartRecycler)
     override bool Server_CanStartProcess()
     {
-        // 1. Базовая проверка твоего мода (проверка m_IsProcessing, JSON-конфига и кабеля питания)
+        // 1. Базовая проверка твоего мода (проверка m_IsProcessing и JSON-конфига)
         if (!super.Server_CanStartProcess())
+            return false;
+
+        // ПРОВЕРКА ЭЛЕКТРИЧЕСТВА: Насос не запустится, если генератор выключен
+        if (!IsEnergySourceRunning())
             return false;
 
         // 2. Ищем канистру в выходном слоте
@@ -25,13 +56,31 @@ class CN_OilPump : CN_MiningMachineBase
         return true;
     }
 
+    // Вызывается базовым классом мода, когда процесс успешно начался
+    override void Server_StartProcess()
+    {
+        super.Server_StartProcess();
+
+        // Переключаем сетевой флаг на сервере и шлем пакет клиентам
+        m_IsPumpWorking = true;
+        SetSynchDirty(); 
+    }
+
+    // Вызывается базовым классом мода, когда процесс завершился или прерван
+    override void Server_StopProcess()
+    {
+        super.Server_StopProcess();
+
+        // Тушим сетевой флаг на сервере и останавливаем анимацию у клиентов
+        m_IsPumpWorking = false;
+        SetSynchDirty(); 
+    }
+
     // Функция сканирования окружения на наличие статических объектов карты на основе JSON-конфига
     protected bool IsNearOilDerrick()
     {
-        // Загружаем специфический конфиг для насоса через твой менеджер синглтона
         CN_OilPumpConfig config = CN_OilPumpConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilPump"));
         
-        // Защитная проверка: если конфиг поврежден или массив пуст — блокируем работу во избежание краша
         if (!config || !config.OilDerrickClassnames || config.OilDerrickClassnames.Count() == 0)
         {
             Print("[CN_MiningMachines] Ошибка: Конфигурация для CN_OilPump повреждена или не содержит вышки!");
@@ -41,16 +90,13 @@ class CN_OilPump : CN_MiningMachineBase
         float checkRadius = config.OilDerrickCheckRadius;
         array<Object> nearbyObjects = new array<Object>;
         
-        // Получаем список всех объектов в радиусе из JSON-файла от насоса
         GetGame().GetObjectsAtPosition(GetPosition(), checkRadius, nearbyObjects, null);
 
-        // Пробегаемся по объектам вокруг станка
         for (int i = 0; i < nearbyObjects.Count(); i++)
         {
             Object obj = nearbyObjects.Get(i);
             if (!obj) continue;
 
-            // Сверяем объект со списком разрешенных класснеймов из JSON-файла
             for (int j = 0; j < config.OilDerrickClassnames.Count(); j++)
             {
                 string allowedDerrickClass = config.OilDerrickClassnames.Get(j);
@@ -61,14 +107,14 @@ class CN_OilPump : CN_MiningMachineBase
             }
         }
 
-        return false; // Обошли все предметы вокруг и нужную вышку не нашли
+        return false; 
     }
 
     // ИНТЕРВАЛЬНЫЙ ЦИКЛ ДОБЫЧИ (Поштучный тик твоего Timer'а — Правило №5)
     override void Server_ExecuteCycleTick()
     {
-        // Если пропало электричество или кто-то сдвинул насос от вышки — останавливаемся
-        if (!IsPowered() || !IsNearOilDerrick())
+        // Если пропало электричество (генератор заглох) или кто-то убрал вышку — останавливаемся
+        if (!IsEnergySourceRunning() || !IsNearOilDerrick())
         {
             Server_StopProcess();
             return;
@@ -92,7 +138,7 @@ class CN_OilPump : CN_MiningMachineBase
         // Скорость выкачки за один тик таймера: 300 мл нефти
         float fluidToPump = 300.0;
         
-        // Проверяем, сколько свободного места осталось в канистре (Правило №6)
+        // Проверяем, сколько свободного места осталось в канистре
         float itemFreeSpace = outCanister.GetFluidCap() - outCanister.GetQuantity(); 
         if (itemFreeSpace <= 0)
         {
@@ -106,13 +152,11 @@ class CN_OilPump : CN_MiningMachineBase
         // Если канистра была абсолютно пустой, инициализируем тип жидкости перед заливкой
         if (outCanister.GetQuantity() == 0)
         {
-            outCanister.SetLiquidType(CN_LiquidTypes.CRUDE_OIL); // Задаем ID маски Сырой нефти
+            outCanister.SetLiquidType(CN_LiquidTypes.CRUDE_OIL); 
         }
 
-        // Наполняем канистру нефтью из земли
         outCanister.AddQuantity(fluidToPump);
 
-        // Если канистра наполнилась до краев — выключаем насос
         if (outCanister.IsFullQuantity())
         {
             Server_StopProcess();
