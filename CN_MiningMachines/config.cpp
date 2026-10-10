@@ -14,9 +14,17 @@ class CfgMods
     class CN_MiningMachines
     {
         dir = "CN_MiningMachines";
-        name = "CN Mining Machines";
-        type = "mod";
-        dependencies[] = {"Game", "World", "Mission"};
+		picture = "";
+		action = "";
+		hideName = 1;
+		hidePicture = 1;
+		name = "CN_MiningMachines";
+		credits = "Cold_Night";
+		author = "Kaolo";
+		authorID = 0;
+		version = 0.1;
+		extra = 0;
+		type = "mod";
 
         class defs
         {
@@ -33,21 +41,21 @@ class CfgSlots
     {
         name = "RecycleInput";
         displayName = "$STR_CN_Slot_RecycleInput";
-        ghostIcon = "set:dayz_inventory image:cat_common";
+        ghostIcon = "set:dayz_inventory image:barrel";
     };
 
     class Slot_RecycleOutput
     {
         name = "RecycleOutput";
         displayName = "$STR_CN_Slot_RecycleOutput";
-        ghostIcon = "set:dayz_inventory image:cat_common";
+        ghostIcon = "set:dayz_inventory image:gascanister";
     };
 
     class Slot_RecycleRare
     {
         name = "RecycleRare";
         displayName = "$STR_CN_Slot_RecycleRare";
-        ghostIcon = "set:dayz_inventory image:cat_common";
+        ghostIcon = "set:dayz_inventory image:gascanister";
     };
 };
 
@@ -82,6 +90,7 @@ class CfgLiquidDefinitions
 class CfgVehicles
 {
     class ItemBase;
+	class Inventory_Base;
     class CanisterGasoline;
 
     
@@ -92,16 +101,17 @@ class CfgVehicles
         scope = 2; // Предмет доступен в спавнере и типах (types.xml)
         displayName = "#STR_CN_ITEM_CRUDE_OIL_CANISTER"; 
         descriptionShort = "#STR_CN_ITEM_CRUDE_OIL_CANISTER_DESC"; 
+		inventorySlot[] = {"CanisterGasoline", "RecycleOutput"};
         
         // Меняем цвет канистры на лету (dz текстура jerrycan)
         hiddenSelectionsTextures[] = {"\dz\gear\containers\data\jerrycan_co.paa"}; 
 
         // --- ВАНИЛЬНЫЙ СПОСОБ ИНИЦИАЛИЗАЦИИ ЖИДКОСТИ ---
         // Задаем тип жидкости при спавне (ID Сырой нефти из вашего CN_LiquidTypes)
-        varLiquidTypeInit = 512; 
+        varLiquidTypeInit = 2097152; 
 
         // Задаем изначальное количество жидкости (20 литров)
-        varQuantityInit = 0; 
+        varQuantityInit = 10; 
 
         // (Опционально) Если хотите, чтобы в ЭТУ канистру игроки могли наливать ТОЛЬКО нефть,
         // раскомментируйте строчку ниже. Если оставить её закомментированной, в пустую канистру можно будет налить бензин или воду.
@@ -111,12 +121,12 @@ class CfgVehicles
 
 
 
-    class CN_MiningMachineBase: ItemBase
+    class CN_MiningMachineBase: Inventory_Base
     {
         scope = 0;
         displayName = "$STR_CN_MiningMachineBase_Name";
         descriptionShort = "$STR_CN_MiningMachineBase_Desc";
-        model = "\DZ\gear\containers\woodencrate.p3d";
+        model = "DZ\gear\containers\woodencrate.p3d";
         weight = 10000;
         itemSize[] = {5,5};
         itemsCargoSize[] = {5,5};
@@ -164,7 +174,7 @@ class CfgVehicles
         scope = 2;
         displayName = "#STR_CN_VEHICLE_OIL_PUMP";
         descriptionShort = "#STR_CN_VEHICLE_OIL_PUMP_DESC";
-        model = "\CN_MiningMachines\cn_OilPump.p3d"; // Замените на вашу модель насоса
+        model = "CN_MiningMachines\cn_OilPump.p3d";
 
         // Для работы нужна только канистра на выход
         attachments[] = {"RecycleOutput"};
@@ -180,11 +190,12 @@ class CfgVehicles
 
         class EnergyManager
         {
-            switchOnAtSpawn = 0;
-            isInteractive = 1;
-            hasIcon = 1;
-            plugType = 1; // Требует кабель питания
-            energyUsagePerSecond = 1.5; // Потребляет чуть больше энергии
+            cordLength=5;
+			plugType=2;
+			updateInterval=50;
+			hasIcon=1;
+			energyUsagePerSecond=0.14;
+			cordTextureFile="DZ\gear\camping\Data\plug_yellow_CO.paa";
         };
     };
 
@@ -193,7 +204,7 @@ class CfgVehicles
         scope = 2;
         displayName = "#STR_CN_VEHICLE_OIL_DISTILLER"; // Ссылка на токен названия из stringtable.csv
         descriptionShort = "#STR_CN_VEHICLE_OIL_DISTILLER_DESC"; // Ссылка на токен описания из stringtable.csv
-        model = "\DZ\structures\furniture\kitchen\stove\stove.p3d";
+        model = "DZ\structures\furniture\kitchen\stove\stove.p3d";
 
         attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare", "Firewood", "WoodenStick"};
         

@@ -4,5 +4,6 @@ modded class ActionConstructor
     {
         super.RegisterActions(actions);
         actions.Insert(ActionStartRecycler);
+		actions.Insert(ActionStopRecycler);
     }
 };
