@@ -1,40 +1,35 @@
 class CN_OilPump : CN_MiningMachineBase
 {
-    // Текущая фаза анимации маховика
+    // Сетевая переменная синхронизации стейта работы помпы
+    protected bool m_IsPumpWorking;
+
+    // Внутренние клиентские переменные для анимации
     protected float m_ShaftPhase = 0.0;
-    // Флаг, работает ли анимация в текущий момент на клиенте
     protected bool m_AnimLoopActive = false;
 
     void CN_OilPump()
     {
-        // Нам нужен апдейт кадра на клиенте для плавного изменения фазы анимации
+        // Регистрируем логический флаг в сетевой системе DayZ
+        RegisterNetSyncVariableBool("m_IsPumpWorking");
+
+        // Включаем обновление кадров (FRAME) только на клиенте
         #ifndef DZ_SERVER
         SetEventMask(EntityEvent.FRAME);
         #endif
     }
 
-    // Метод, который DayZ вызывает при изменении состояния синхронизированных переменных 
-    // (например, когда сервер переключает режим работы станка)
+    // Вызывается у клиентов, когда сервер прислал обновленный статус m_IsPumpWorking
     override void OnVariablesSynchronized()
     {
         super.OnVariablesSynchronized();
 
-        // Проверяем статус работы станка из твоего базового класса.
-        // Замени IsProcessing() на твой базовый геттер состояния работы машины!
-        if (IsProcessing()) 
-        {
-            if (!m_AnimLoopActive)
-            {
-                m_AnimLoopActive = true;
-            }
-        }
+        if (m_IsPumpWorking)
+            m_AnimLoopActive = true;
         else
-        {
             m_AnimLoopActive = false;
-        }
     }
 
-    // Кадровая отрисовка на клиенте для обеспечения идеальной плавности 60+ FPS
+    // Кадровая цикличная прокрутка кости "shaft"
     override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
@@ -42,35 +37,29 @@ class CN_OilPump : CN_MiningMachineBase
         #ifndef DZ_SERVER
         if (m_AnimLoopActive)
         {
-            // Увеличиваем фазу анимации пропорционально времени кадра (timeslice)
-            // Скорость вращения: 0.15 за секунду (можешь менять для ускорения/замедления)
+            // Смещение фазы. Настройка скорости (0.15)
             m_ShaftPhase += 0.15 * timeslice;
 
-            // Поскольку в твоему model.cfg прописан sourceAddress="loop", 
-            // при достижении значения maxValue (0.08) анимация должна сбрасываться в 0.0
-            if (m_ShaftPhase > 0.08) // Твое maxValue из конфига
+            // Сброс в 0 при достижении maxValue (0.08) из твоего model.cfg
+            if (m_ShaftPhase > 0.08)
             {
                 m_ShaftPhase = 0.0;
             }
 
-            // Насильно принуждаем движок повернуть кость "shaft" на текущий шаг фазы
-            // "shaft_rotation" — имя класса анимации из твоего CfgModels
+            // Вращаем кость на клиенте
             SetAnimationPhase("shaft_rotation", m_ShaftPhase);
         }
         #endif
     }
 
-    // Подстраховка: если игрок подошел к работающей помпе, которая уже качает далеко от него,
-    // метод инициализации на клиенте проверит стейт и сразу запустит вращение маховика
+    // Запуск анимации, если игрок прибежал к уже работающему станку
     override void EOnInit(IEntity other, int extra)
     {
         super.EOnInit(other, extra);
 
         #ifndef DZ_SERVER
-        if (IsProcessing())
-        {
+        if (m_IsPumpWorking)
             m_AnimLoopActive = true;
-        }
         #endif
     }
 }
