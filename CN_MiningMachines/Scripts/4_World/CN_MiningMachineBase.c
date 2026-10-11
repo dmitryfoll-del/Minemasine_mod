@@ -68,4 +68,31 @@ class CN_MiningMachineBase extends ItemBase
         if (m_ProcessingParticle) { m_ProcessingParticle.Stop(); m_ProcessingParticle = null; }
         SEffectManager.PlaySound("powerGeneratorStop_SoundSet", GetPosition());
     }
+	
+	// =================================================================
+    // СЕРВЕРНЫЕ ЗАГЛУШКИ ДЛЯ КОМПИЛЯТОРА КЛИЕНТА (ИСПРАВЛЕНО)
+    // =================================================================
+    // Эти методы необходимы здесь, чтобы клиентский экшен ActionStartRecycler 
+    // успешно скомпилировался на твоем компьютере. На клиенте они пустые, 
+    // а на сервере их перехватит и выполнит твой серверный PBO.
+    
+    bool Server_CanStartProcess()
+    {
+        return true;
+    }
+
+    void Server_StartProcess()
+    {
+        // Оставляем пустым
+    }
+
+    void Server_StopProcess()
+    {
+        // Оставляем пустым
+    }
+
+    void Server_ExecuteCycleTick()
+    {
+        // Оставляем пустым
+    }
 };
