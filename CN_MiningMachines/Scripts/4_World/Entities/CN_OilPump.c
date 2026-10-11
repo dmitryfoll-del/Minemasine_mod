@@ -1,35 +1,17 @@
 class CN_OilPump : CN_MiningMachineBase
 {
-    // Сетевая переменная синхронизации стейта работы помпы
-    protected bool m_IsPumpWorking;
-
-    // Внутренние клиентские переменные для анимации
-    protected float m_ShaftPhase = 0.0;
+    // Оставляем только то, что нужно для анимации вала
     protected bool m_AnimLoopActive = false;
+    protected float m_ShaftPhase = 0.0;
 
-    // --- ПЕРЕМЕННЫЕ ДЛЯ ЗВУКА ---
-    protected ref EffectSound m_PumpLoopSound;
-    protected const string PUMP_SOUND_SET = "CN_RAM_TRX_Engine_Ext_Rpm0_SoundSet";
+    // Твой кастомный саундсет двигателя
+    protected const string PUMP_SOUND_SET = "powerGenerator_low_Fuel_Loop_SoundSet"; //Bunker_Lamp_Hum_SoundSet
 
     void CN_OilPump()
     {
-        // Регистрируем логический флаг в сетевой системе DayZ
-        RegisterNetSyncVariableBool("m_IsPumpWorking");
-
-        // Включаем обновление кадров (FRAME) только на клиенте
-        #ifndef DZ_SERVER
+        // Включаем обновление кадров (FRAME) только на клиенте для вращения вала
+        #ifndef SERVER
         SetEventMask(EntityEvent.FRAME);
-        #endif
-    }
-
-    // Деструктор: чистим звуковые эффекты во избежание утечки памяти или зависшего звука в воздухе
-    void ~CN_OilPump()
-    {
-        #ifndef DZ_SERVER
-        if (m_PumpLoopSound)
-        {
-            SEffectManager.DestroyEffect(m_PumpLoopSound);
-        }
         #endif
     }
 
@@ -37,115 +19,107 @@ class CN_OilPump : CN_MiningMachineBase
     {
         super.SetActions();
         AddAction(ActionStartRecycler);
-        AddAction(ActionStopRecycler); // Наш новый экшен выключения теперь тоже тут!
+        AddAction(ActionStopRecycler);
         AddAction(ActionPlugIn);
         AddAction(ActionUnplugThisByCord);
+		AddAction(ActionPlaceObject);
     }
 
-    // ОБЯЗАТЕЛЬНО: Сигнализируем движку DayZ, что это электрический прибор
     override bool IsElectricAppliance()
     {
         return true;
     }
 
     override bool CanPutInCargo(EntityAI parent)
-	{
-		if (!super.CanPutInCargo(parent)) 
-			return false;
-		
-		return !GetCompEM().IsPlugged();
-	}
-
-	override bool CanPutIntoHands(EntityAI parent) 
-	{
-		if (!super.CanPutIntoHands(parent))
-		{
-			return false;
-		}
-		// Commented out so Reposition action is possible to execute
-		return true;
-	}
-
-    // Вызывается у клиентов, когда сервер прислал обновленный статус m_IsPumpWorking
-    override void OnVariablesSynchronized()
     {
-        super.OnVariablesSynchronized();
-
-        if (m_IsPumpWorking)
-        {
-            m_AnimLoopActive = true;
-            PlayPumpSound();
-        }
-        else
-        {
-            m_AnimLoopActive = false;
-            StopPumpSound();
-        }
+        if (!super.CanPutInCargo(parent)) return false;
+        return !GetCompEM().IsPlugged();
     }
 
-    // Включение зацикленного звука работы на клиенте
-    protected void PlayPumpSound()
+    override bool CanPutIntoHands(EntityAI parent) 
     {
-        #ifndef SERVER
-        if (!m_PumpLoopSound || !m_PumpLoopSound.IsSoundPlaying())
-        {
-            // Спавним зацикленный звук на позиции нашей модели
-            m_PumpLoopSound = SEffectManager.PlaySoundOnObject(PUMP_SOUND_SET, this, 0, 0, true);
-            
-            if (m_PumpLoopSound)
-            {
-                m_PumpLoopSound.SetSoundFadeIn(1.0); // Плавный старт звука (1 секунда)
-            }
-        }
-        #endif
+        if (!super.CanPutIntoHands(parent)) return false;
+        return true;
     }
 
-    // Отключение звука работы
-    protected void StopPumpSound()
+    // =================================================================
+    // ИДЕАЛЬНОЕ ПЕРЕОПРЕДЕЛЕНИЕ ЭФФЕКТОВ БАЗОВОГО КЛАССА
+    // =================================================================
+
+    override protected void StartProcessingEffects()
     {
-        #ifndef SERVER
-        if (m_PumpLoopSound && m_PumpLoopSound.IsSoundPlaying())
-        {
-            m_PumpLoopSound.SetSoundFadeOut(0.5); // Плавное затухание при остановке (0.5 секунды)
-            m_PumpLoopSound.SoundStop();
-        }
-        #endif
+        if (m_EffectsActive || !GetGame().IsClient()) return;
+        m_EffectsActive = true;
+
+        // ИСПРАВЛЕНО: Вместо звука генератора принудительно запускаем ТВОЙ саундсет!
+        m_ProcessingSound = SEffectManager.PlaySound("powerGenerator_low_Fuel_Loop_SoundSet", GetPosition());
+        if (m_ProcessingSound) 
+            m_ProcessingSound.SetSoundAutodestroy(false);
+
+        // Дым тоже запускается как положено
+        m_ProcessingParticle = Particle.PlayOnObject(ParticleList.POWER_GENERATOR_SMOKE, this);
+
+        // Активируем вращение вала в EOnFrame
+        m_AnimLoopActive = true;
     }
 
-    // Точное ванильное имя аргумента с большой буквы 'timeSlice'
+    override protected void StopProcessingEffects()
+    {
+        if (!m_EffectsActive || !GetGame().IsClient()) return;
+        m_EffectsActive = false;
+
+        // Чисто и без багов останавливаем кастомный звук
+        if (m_ProcessingSound) 
+        { 
+            m_ProcessingSound.Stop(); 
+            m_ProcessingSound = null; 
+        }
+
+        // Гасим партикл дыма
+        if (m_ProcessingParticle) 
+        { 
+            m_ProcessingParticle.Stop(); 
+            m_ProcessingParticle = null; 
+        }
+
+        // Останавливаем вращение вала
+        m_AnimLoopActive = false;
+
+        // Проигрываем ванильный звук остановки (по желанию можно убрать или заменить)
+        SEffectManager.PlaySound("powerGeneratorStop_SoundSet", GetPosition());
+    }
+
+    // =================================================================
+    // ВРАЩЕНИЕ ВАЛА (ОБНОВЛЕНИЕ КАДРОВ)
+    // =================================================================
+
     override void EOnFrame(IEntity other, float timeSlice)
     {
         super.EOnFrame(other, timeSlice);
 
-        #ifndef DZ_SERVER
+        #ifndef SERVER
         if (m_AnimLoopActive)
         {
-            // Смещение фазы. Используем точную переменную timeSlice из аргументов
-            m_ShaftPhase += 0.15 * timeSlice;
+            // Плавное смещение фазы под ограничения твоего model.cfg (max 0.08)
+            m_ShaftPhase += 0.04 * timeSlice;
 
-            // Сброс в 0 при достижении maxValue (0.08) из твоего model.cfg
             if (m_ShaftPhase > 0.08)
             {
                 m_ShaftPhase = 0.0;
             }
 
-            // Вращаем кость "shaft" на клиенте по классу анимации "shaft_rotation"
+            // Передаем фазу вращения кости "shaft"
             SetAnimationPhase("shaft_rotation", m_ShaftPhase);
         }
         #endif
     }
+	override bool IsDeployable()
+	{
+		return true;
+	}
+	override string GetDeploySoundset()
+	{
+		return "placeBatteryCharger_SoundSet";
+	}
 
-    // Запуск анимации и звука, если игрок прибежал к уже работающему станку
-    override void EOnInit(IEntity other, int extra)
-    {
-        super.EOnInit(other, extra);
-
-        #ifndef DZ_SERVER
-        if (m_IsPumpWorking)
-        {
-            m_AnimLoopActive = true;
-            PlayPumpSound();
-        }
-        #endif
-    }
 }

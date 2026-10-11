@@ -49,6 +49,7 @@ class CfgSlots
         name = "RecycleOutput";
         displayName = "$STR_CN_Slot_RecycleOutput";
         ghostIcon = "set:dayz_inventory image:gascanister";
+		selection="recycleoutput";
     };
 
     class Slot_RecycleRare
@@ -129,6 +130,7 @@ class CfgVehicles
         model = "DZ\gear\containers\woodencrate.p3d";
         weight = 10000;
         itemSize[] = {5,5};
+		heavyItem=1;
         itemsCargoSize[] = {5,5};
         attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare"};
 
@@ -175,28 +177,72 @@ class CfgVehicles
         displayName = "#STR_CN_VEHICLE_OIL_PUMP";
         descriptionShort = "#STR_CN_VEHICLE_OIL_PUMP_DESC";
         model = "CN_MiningMachines\cn_OilPump.p3d";
-
+		soundImpactType="metal";
+		itemSize[] = {10,15};
+		heavyItem=1;
+        itemsCargoSize[] = {2,3};
         // Для работы нужна только канистра на выход
-        attachments[] = {"RecycleOutput"};
+        attachments[] = 
+		{
+			"RecycleOutput"
+		};
         
         class GUIInventoryAttachmentsProps
         {
             class CN_ProcessingZones
             {
                 name = "Выход продукции";
-                attachmentSlots[] = {"RecycleOutput"}; 
+                attachmentSlots[] = 
+				{
+					"RecycleOutput"
+				}; 
             };
         };
 
         class EnergyManager
         {
-            cordLength=5;
+            cordLength=15;
 			plugType=2;
 			updateInterval=50;
 			hasIcon=1;
 			energyUsagePerSecond=0.14;
-			cordTextureFile="DZ\gear\camping\Data\plug_yellow_CO.paa";
+			cordTextureFile="DZ\gear\camping\Data\plug_black_CO.paa";
         };
+		class AnimationSources
+		{
+			class shaft_rotation
+			{
+				source="user";
+				animPeriod=0.08;
+				initPhase=0;
+			};
+		};
+		class AnimEvents
+		{
+			class SoundWeapon
+			{
+				class walk
+				{
+					soundSet="powergenerator_movement_walk_SoundSet";
+					id=1;
+				};
+				class pickUpItem_Light
+				{
+					soundSet="pickUpPowerGenerator_SoundSet";
+					id=796;
+				};
+				class pickUpItem
+				{
+					soundSet="pickUpPowerGenerator_SoundSet";
+					id=797;
+				};
+				class drop
+				{
+					soundset="powergenerator_drop_SoundSet";
+					id=898;
+				};
+			};
+		};
     };
 
     class CN_OilDistiller: CN_MiningMachineBase
@@ -237,4 +283,18 @@ class CfgVehicles
         displayName = "$STR_CN_OreExtractor_Name";
         descriptionShort = "$STR_CN_OreExtractor_Desc";
     };
+};
+
+
+class CfgNonAIVehicles
+{
+	class ProxyAttachment;
+	class ProxyRecycleOutput: ProxyAttachment
+	{
+		model="CN_MiningMachines\data\proxy\RecycleOutput.p3d";
+		inventorySlot[]=
+		{
+			"RecycleOutput"
+		};
+	};
 };
