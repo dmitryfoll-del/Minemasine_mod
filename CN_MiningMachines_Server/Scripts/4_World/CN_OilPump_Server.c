@@ -1,224 +1,223 @@
 modded class CN_OilPump
 {
-    // Проверка, идет ли ток от РАБОТАЮЩЕГО генератора
-    protected bool IsEnergySourceRunning()
+    // =================================================================
+    // ВАНИЛЬНЫЕ СОБЫТИЯ ЭНЕРГОМЕНЕДЖЕРА (КАК В SPOTLIGHT / GENERATOR)
+    // =================================================================
+
+    // Автоматический вызов сервером, когда тумблер включен и есть ток в кабеле
+    override void OnWorkStart()
     {
-        ComponentEnergyManager energy_manager = GetCompEM();
-        if (!energy_manager)
+        super.OnWorkStart();
+        Print("[CN_PUMP_LOG] Энергосистема: Насос получил питание и активировал цепь (OnWorkStart).");
+        Server_StartProcess();
+    }
+
+    // Автоматический вызов сервером, когда насос выключили, вынули кабель или заглох генератор
+    override void OnWorkStop()
+    {
+        super.OnWorkStop();
+        Print("[CN_PUMP_LOG] Энергосистема: Насос потерял питание или отключен (OnWorkStop).");
+        Server_StopProcess();
+    }
+
+    // =================================================================
+    // ТВОИ МЕТОДЫ ПРОВЕРОК И ВЫЧИСЛЕНИЙ
+    // =================================================================
+
+    protected ItemBase GetOutputCanister()
+    {
+        return ItemBase.Cast(FindAttachmentBySlotName("RecycleOutput"));
+    }
+
+    protected bool CanPumpIntoCanister(ItemBase canister)
+    {
+        if (!canister)
         {
-            Print("[CN_PUMP_LOG] Сбой: У насоса нет ComponentEnergyManager!");
+            Print("[CN_PUMP_LOG] Проверка тары: Слот 'RecycleOutput' пуст. Нет контейнера.");
             return false;
         }
 
-        if (!energy_manager.IsSwitchedOn())
+        if (canister.IsFullQuantity())
         {
-            Print("[CN_PUMP_LOG] Сбой: Энергоменеджер насоса выключен (IsSwitchedOn == false).");
+            Print("[CN_PUMP_LOG] Проверка тары: Контейнер '" + canister.GetType() + "' уже заполнен до краев.");
             return false;
         }
 
-        EntityAI power_source = energy_manager.GetEnergySource();
-        if (!power_source)
+        if (canister.GetQuantity() > 0 && canister.GetLiquidType() != 16777216)
         {
-            Print("[CN_PUMP_LOG] Сбой: К насосу физически не подключен кабель питания!");
-            return false; 
-        }
-
-        ComponentEnergyManager source_em = power_source.GetCompEM();
-        if (source_em)
-        {
-            if (!source_em.IsSwitchedOn() || source_em.GetEnergy() <= 0)
-            {
-                Print("[CN_PUMP_LOG] Сбой: Генератор выключен или в нем нет бензина!");
-                return false;
-            }
+            Print("[CN_PUMP_LOG] Проверка тары: В контейнере находится чужеродная жидкость (Маска: " + canister.GetLiquidType() + ").");
+            return false;
         }
 
         return true;
-    }
-
-    // Метод проверки условий для старта
-    override bool Server_CanStartProcess()
-    {
-        Print("[CN_PUMP_LOG] === ЗАПУСК ПРОВЕРКИ СТАНКА ===");
-
-        // 1. Проверяем базовые флаги из CN_MiningMachineBase
-        if (m_IsProcessing)
-        {
-            Print("[CN_PUMP_LOG] Сбой: Насос уже работает (m_IsProcessing == true)!");
-            return false;
-        }
-
-        if (!m_ServerConfig)
-        {
-            Print("[CN_PUMP_LOG] Сбой: Конфигурация m_ServerConfig равна NULL!");
-            return false;
-        }
-
-        // 2. Проверяем генератор
-        if (!IsEnergySourceRunning())
-        {
-            Print("[CN_PUMP_LOG] Сбой: Проверка IsEnergySourceRunning() вернула false!");
-            return false;
-        }
-
-        // 3. Проверяем канистру на выход продукции
-        ItemBase outCanister = ItemBase.Cast(FindAttachmentBySlotName("RecycleOutput"));
-        if (!outCanister)
-        {
-            Print("[CN_PUMP_LOG] Сбой: В слоте 'RecycleOutput' сервер НЕ ВИДИТ предмет! Проверь имя слота в config.cpp модели.");
-            return false;
-        }
-        
-        if (outCanister.IsFullQuantity())
-        {
-            Print("[CN_PUMP_LOG] Сбой: Канистра уже полная!");
-            return false;
-        }
-
-        if (outCanister.GetQuantity() > 0 && outCanister.GetLiquidType() != 16777216)
-        {
-            Print("[CN_PUMP_LOG] Сбой: В канистре налита другая жидкость, тип: " + outCanister.GetLiquidType());
-            return false;
-        }
-
-        // 4. Проверяем вышку рядом
-        if (!IsNearOilDerrick())
-        {
-            Print("[CN_PUMP_LOG] Сбой: Метод IsNearOilDerrick() вернул false! В радиусе нет подходящей вышки.");
-            return false; 
-        }
-
-        Print("[CN_PUMP_LOG] УСПЕХ: Все проверки пройдены! Насос одобряет запуск.");
-        return true;
-    }
-
-    override void Server_StartProcess()
-    {
-        Print("[CN_PUMP_LOG] Сервер получил команду запустить таймер добычи...");
-        
-        if (!Server_CanStartProcess())
-        {
-            Print("[CN_PUMP_LOG] Сбой: Запуск прерван, так как Server_CanStartProcess() вернул false.");
-            return;
-        }
-
-        float processTime = m_ServerConfig.ProcessTimeSeconds;
-        if (processTime < 0.1) processTime = 0.1;
-
-        m_IsProcessing = true;
-        m_IsPumpWorking = true;
-        SetSynchDirty(); 
-        
-        Print("[CN_PUMP_LOG] ТАЙМЕР ЗАПУЩЕН! Время цикла: " + processTime + " сек.");
-        m_ProcessTimer.Run(processTime, this, "Server_ExecuteCycleTick", NULL, true);
-    }
-
-    override void Server_StopProcess()
-    {
-        if (m_ProcessTimer) m_ProcessTimer.Stop();
-        if (!m_IsProcessing) return;
-
-        m_IsProcessing = false;
-        m_IsPumpWorking = false;
-        SetSynchDirty(); 
-        
-        Print("[CN_PUMP_LOG] ТАЙМЕР ОСТАНОВЛЕН (Server_StopProcess).");
     }
 
     protected bool IsNearOilDerrick()
     {
         CN_OilPumpConfig config = CN_OilPumpConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilPump"));
-        
-        float checkRadius = 15.0; 
-        if (config)
-        {
-            checkRadius = config.OilDerrickCheckRadius;
-        }
 
-        Print("[CN_PUMP_LOG] Ищу вышку в радиусе: " + checkRadius + " метров...");
+        float checkRadius = 15.0;
+        if (config) checkRadius = config.OilDerrickCheckRadius;
+
+        Print("[CN_PUMP_LOG] Проверка окружения: Ищу вышку в радиусе " + checkRadius + " метров...");
 
         array<Object> nearbyObjects = new array<Object>;
         GetGame().GetObjectsAtPosition(GetPosition(), checkRadius, nearbyObjects, null);
-        
-        Print("[CN_PUMP_LOG] Всего найдено объектов вокруг: " + nearbyObjects.Count());
 
         for (int i = 0; i < nearbyObjects.Count(); i++)
         {
             Object obj = nearbyObjects.Get(i);
             if (!obj) continue;
 
-            if (obj.IsKindOf("cn_LAND_OilPump"))
+            if (obj.IsKindOf("cn_LAND_OilPump")) 
             {
-                Print("[CN_PUMP_LOG] Найдена вышка жесткого класса: cn_LAND_OilPump");
-                return true; 
+                Print("[CN_PUMP_LOG] Вышка найдена! Обнаружен объект базового класса: cn_LAND_OilPump");
+                return true;
             }
 
             if (config && config.OilDerrickClassnames)
             {
                 for (int j = 0; j < config.OilDerrickClassnames.Count(); j++)
                 {
-                    string allowedDerrickClass = config.OilDerrickClassnames.Get(j);
-                    if (allowedDerrickClass != "" && obj.IsKindOf(allowedDerrickClass))
+                    string derrickClass = config.OilDerrickClassnames.Get(j);
+                    if (derrickClass != "" && obj.IsKindOf(derrickClass)) 
                     {
-                        Print("[CN_PUMP_LOG] Найдена вышка из JSON конфига: " + allowedDerrickClass);
-                        return true; 
+                        Print("[CN_PUMP_LOG] Вышка найдена! Обнаружен объект из JSON конфига: " + derrickClass);
+                        return true;
                     }
                 }
             }
         }
 
-        return false; 
+        Print("[CN_PUMP_LOG] Сбой проверки окружения: Поблизости нет подходящих вышек.");
+        return false;
+    }
+
+    // =================================================================
+    // УПРАВЛЕНИЕ ТАЙМЕРОМ И ЦИКЛОМ ДОБЫЧИ
+    // =================================================================
+
+    override bool Server_CanStartProcess()
+    {
+        Print("[CN_PUMP_LOG] === ЗАПУСК СЕРВЕРНОЙ ПРОВЕРКИ УСЛОВИЙ СТАНКА ===");
+
+        if (m_IsProcessing) 
+            return false;
+
+        // ВАЖНО: Твои строгие проверки тары и вышки выполняются прямо здесь!
+        ItemBase outputCanister = GetOutputCanister();
+        if (!CanPumpIntoCanister(outputCanister)) 
+            return false;
+
+        if (!IsNearOilDerrick()) 
+            return false;
+
+        return true;
+    }
+
+    override void Server_StartProcess()
+    {
+        Print("[CN_PUMP_LOG] Запрос на инициализацию процесса добычи...");
+
+        // Проверяем вышку и канистру. Если условия нарушены — сбрасываем тумблер!
+        if (!Server_CanStartProcess())
+        {
+            Print("[CN_PUMP_LOG] Сбой: Условия не выполнены. Отключаю тумблер питания насоса.");
+            if (GetCompEM()) 
+                GetCompEM().SwitchOff();
+            return;
+        }
+
+        if (!m_ProcessTimer) 
+            m_ProcessTimer = new Timer(CALL_CATEGORY_SYSTEM);
+
+        float processTime = 2.0;
+        CN_OilPumpConfig config = CN_OilPumpConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilPump"));
+        if (config && config.ProcessTimeSeconds >= 0.1) 
+            processTime = config.ProcessTimeSeconds;
+
+        m_IsProcessing = true;
+        m_IsPumpWorking = true;
+        SetSynchDirty();
+
+        Print("[CN_PUMP_LOG] УСПЕХ: Таймер добычи активирован. Цикл тиков: " + processTime + " сек.");
+        m_ProcessTimer.Run(processTime, this, "Server_ExecuteCycleTick", NULL, true);
+    }
+
+    override void Server_StopProcess()
+    {
+        if (m_ProcessTimer) 
+        {
+            m_ProcessTimer.Stop();
+            Print("[CN_PUMP_LOG] Логика: Циклический таймер добычи остановлен.");
+        }
+
+        if (!m_IsProcessing) 
+            return;
+
+        m_IsProcessing = false;
+        m_IsPumpWorking = false;
+        SetSynchDirty();
+        
+        Print("[CN_PUMP_LOG] Состояние: Насос переведен в пассивный режим.");
     }
 
     override void Server_ExecuteCycleTick()
     {
-        Print("[CN_PUMP_LOG] === ТИК ЦИКЛА ДОБЫЧИ ===");
+        if (!m_IsProcessing) 
+            return;
 
-        if (!IsEnergySourceRunning() || !IsNearOilDerrick())
+        Print("[CN_PUMP_LOG] === ТИК ТАЙМЕРА ДОБЫЧИ ===");
+
+        // Если вышку убрали админ-инструментом или генератор выключился во время работы тика
+        if (!GetCompEM() || !GetCompEM().IsWorking() || !IsNearOilDerrick())
         {
-            Print("[CN_PUMP_LOG] Цикл прерван: пропало питание или вышка!");
+            Print("[CN_PUMP_LOG] Цикл прерван: Станок потерял питание или вышку в процессе тика.");
             Server_StopProcess();
+            if (GetCompEM()) 
+                GetCompEM().SwitchOff();
             return;
         }
 
-        ItemBase outCanister = ItemBase.Cast(FindAttachmentBySlotName("RecycleOutput"));
-        if (!outCanister || outCanister.IsFullQuantity())
+        ItemBase outputCanister = GetOutputCanister();
+        if (!CanPumpIntoCanister(outputCanister))
         {
-            Print("[CN_PUMP_LOG] Цикл прерван: канистра пропала или заполнилась!");
+            Print("[CN_PUMP_LOG] Цикл прерван: Канистра заполнена или извлечена во время тика.");
             Server_StopProcess();
-            return;
-        }
-
-        if (outCanister.GetQuantity() > 0 && outCanister.GetLiquidType() != 16777216)
-        {
-            Print("[CN_PUMP_LOG] Цикл прерван: в канистре обнаружена не нефть!");
-            Server_StopProcess();
+            if (GetCompEM()) 
+                GetCompEM().SwitchOff();
             return;
         }
 
         float fluidToPump = 300.0;
-        float itemFreeSpace = outCanister.GetQuantityMax() - outCanister.GetQuantity(); 
-        if (itemFreeSpace <= 0)
+        float freeSpace = outputCanister.GetQuantityMax() - outputCanister.GetQuantity();
+
+        if (freeSpace <= 0)
         {
             Server_StopProcess();
+            if (GetCompEM()) 
+                GetCompEM().SwitchOff();
             return;
         }
 
-        if (fluidToPump > itemFreeSpace)
-            fluidToPump = itemFreeSpace;
+        if (fluidToPump > freeSpace) 
+            fluidToPump = freeSpace;
 
-        if (outCanister.GetQuantity() == 0)
+        if (outputCanister.GetQuantity() <= 0)
         {
-            outCanister.SetLiquidType(16777216); 
+            Print("[CN_PUMP_LOG] Наполнение: Контейнер пуст. Задаю тип жидкости — Нефть (16777216).");
+            outputCanister.SetLiquidType(16777216);
         }
 
-        outCanister.AddQuantity(fluidToPump);
-        Print("[CN_PUMP_LOG] Успешно накачано " + fluidToPump + " мл нефти.");
+        outputCanister.AddQuantity(fluidToPump);
+        Print("[CN_PUMP_LOG] Успешно добавлено " + fluidToPump + " мл нефти. Текущий объем: " + outputCanister.GetQuantity() + " мл.");
 
-        if (outCanister.IsFullQuantity())
+        if (outputCanister.IsFullQuantity())
         {
-            Print("[CN_PUMP_LOG] Канистра наполнилась до краев!");
+            Print("[CN_PUMP_LOG] Цикл завершен: Тара наполнилась до краев. Выключаю насос.");
             Server_StopProcess();
+            if (GetCompEM()) 
+                GetCompEM().SwitchOff();
         }
     }
 }
