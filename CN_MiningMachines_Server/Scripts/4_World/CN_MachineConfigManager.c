@@ -36,8 +36,6 @@ class CN_MachineConfigManager
         string path = GetConfigPath(machineClassName);
         if (FileExist(path)) return;
 
-        string errorMessage;
-
         if (machineClassName == "CN_OilPump")
         {
             CN_OilPumpConfig pumpConfig = new CN_OilPumpConfig();
@@ -49,9 +47,11 @@ class CN_MachineConfigManager
 
             pumpConfig.ProcessTimeSeconds = 2.0; 
             pumpConfig.EnergyUsagePerSecond = 1.5;
+            pumpConfig.LiquidVolumePerTick = 300.0; // ИСПРАВЛЕНО: Записываем дефолт в JSON
 
-            // ИСПРАВЛЕНО: Применен точный ванильный метод SaveFile движка DayZ
-            JsonFileLoader<CN_OilPumpConfig>.SaveFile(path, pumpConfig, errorMessage);
+
+            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
+            JsonFileLoader<CN_OilPumpConfig>.JsonSaveFile(path, pumpConfig);
         }
         else
         {
@@ -60,8 +60,8 @@ class CN_MachineConfigManager
             config.ProcessTimeSeconds = 1.0;
             config.EnergyUsagePerSecond = 1.0;
 
-            // ИСПРАВЛЕНО: Применен точный ванильный метод SaveFile движка DayZ
-            JsonFileLoader<CN_MachineConfig>.SaveFile(path, config, errorMessage);
+            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
+            JsonFileLoader<CN_MachineConfig>.JsonSaveFile(path, config);
         }
 
         if (FileExist(path))
@@ -71,7 +71,6 @@ class CN_MachineConfigManager
     CN_MachineConfig LoadConfig(string machineClassName)
     {
         string path = GetConfigPath(machineClassName);
-        string errorMessage;
 
         if (!FileExist(path))
         {
@@ -82,20 +81,16 @@ class CN_MachineConfigManager
         if (machineClassName == "CN_OilPump")
         {
             CN_OilPumpConfig pumpConfig = new CN_OilPumpConfig();
-            // ИСПРАВЛЕНО: Применен точный ванильный метод LoadFile движка DayZ
-            if (JsonFileLoader<CN_OilPumpConfig>.LoadFile(path, pumpConfig, errorMessage))
-            {
-                return pumpConfig;
-            }
+            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
+            JsonFileLoader<CN_OilPumpConfig>.JsonLoadFile(path, pumpConfig);
+            if (pumpConfig) return pumpConfig;
         }
         else
         {
             CN_MachineConfig config = new CN_MachineConfig();
-            // ИСПРАВЛЕНО: Применен точный ванильный метод LoadFile движка DayZ
-            if (JsonFileLoader<CN_MachineConfig>.LoadFile(path, config, errorMessage))
-            {
-                return config;
-            }
+            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
+            JsonFileLoader<CN_MachineConfig>.JsonLoadFile(path, config);
+            if (config) return config;
         }
 
         return null;

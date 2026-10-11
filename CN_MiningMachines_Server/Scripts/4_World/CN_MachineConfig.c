@@ -13,7 +13,9 @@ class CN_MachineConfig
 class CN_OilPumpConfig : CN_MachineConfig
 {
     ref array<string> OilDerrickClassnames;
-    float OilDerrickCheckRadius;
+    float OilDerrickCheckRadius;	
+    float LiquidVolumePerTick; // ИСПРАВЛЕНО: Новая переменная для объёма добычи!
+
 
     void CN_OilPumpConfig()
     {
@@ -21,5 +23,6 @@ class CN_OilPumpConfig : CN_MachineConfig
         OilDerrickClassnames.Insert("Land_Ind_Oil_Derrick");
         OilDerrickClassnames.Insert("Land_FuelStation_Feed");
         OilDerrickCheckRadius = 15.0;
+        LiquidVolumePerTick = 300.0; // Значение по умолчанию (дефолт)
     }
 }

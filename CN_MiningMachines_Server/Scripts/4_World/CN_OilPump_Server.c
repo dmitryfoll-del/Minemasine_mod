@@ -104,7 +104,6 @@ modded class CN_OilPump
         if (m_IsProcessing) 
             return false;
 
-        // ВАЖНО: Твои строгие проверки тары и вышки выполняются прямо здесь!
         ItemBase outputCanister = GetOutputCanister();
         if (!CanPumpIntoCanister(outputCanister)) 
             return false;
@@ -119,7 +118,6 @@ modded class CN_OilPump
     {
         Print("[CN_PUMP_LOG] Запрос на инициализацию процесса добычи...");
 
-        // Проверяем вышку и канистру. Если условия нарушены — сбрасываем тумблер!
         if (!Server_CanStartProcess())
         {
             Print("[CN_PUMP_LOG] Сбой: Условия не выполнены. Отключаю тумблер питания насоса.");
@@ -136,8 +134,8 @@ modded class CN_OilPump
         if (config && config.ProcessTimeSeconds >= 0.1) 
             processTime = config.ProcessTimeSeconds;
 
-        m_IsProcessing = true;
-        m_IsPumpWorking = true;
+        // ИСПРАВЛЕНО: Убрали m_IsPumpWorking, синхронизируемся чисто через базовый m_IsProcessing
+        m_IsProcessing = true; 
         SetSynchDirty();
 
         Print("[CN_PUMP_LOG] УСПЕХ: Таймер добычи активирован. Цикл тиков: " + processTime + " сек.");
@@ -155,8 +153,8 @@ modded class CN_OilPump
         if (!m_IsProcessing) 
             return;
 
-        m_IsProcessing = false;
-        m_IsPumpWorking = false;
+        // ИСПРАВЛЕНО: Убрали m_IsPumpWorking, синхронизируемся чисто через базовый m_IsProcessing
+        m_IsProcessing = false; 
         SetSynchDirty();
         
         Print("[CN_PUMP_LOG] Состояние: Насос переведен в пассивный режим.");
@@ -169,7 +167,6 @@ modded class CN_OilPump
 
         Print("[CN_PUMP_LOG] === ТИК ТАЙМЕРА ДОБЫЧИ ===");
 
-        // Если вышку убрали админ-инструментом или генератор выключился во время работы тика
         if (!GetCompEM() || !GetCompEM().IsWorking() || !IsNearOilDerrick())
         {
             Print("[CN_PUMP_LOG] Цикл прерван: Станок потерял питание или вышку в процессе тика.");
@@ -190,6 +187,12 @@ modded class CN_OilPump
         }
 
         float fluidToPump = 300.0;
+        CN_OilPumpConfig config = CN_OilPumpConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilPump"));
+        if (config && config.LiquidVolumePerTick > 0.0)
+        {
+            fluidToPump = config.LiquidVolumePerTick;
+        }
+
         float freeSpace = outputCanister.GetQuantityMax() - outputCanister.GetQuantity();
 
         if (freeSpace <= 0)
