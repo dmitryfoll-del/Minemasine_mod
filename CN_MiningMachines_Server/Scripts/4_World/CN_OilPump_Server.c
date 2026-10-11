@@ -1,54 +1,78 @@
+
 modded class CN_OilPump
 {
     protected bool IsEnergySourceRunning()
     {
-        ComponentEnergyManager energy_manager = GetCompEM();
-        if (!energy_manager) return false;
-        if (!energy_manager.IsSwitchedOn()) return false;
+        ComponentEnergyManager energyManager = GetCompEM();
+        if (!energyManager || !energyManager.IsSwitchedOn()) return false;
 
-        EntityAI power_source = energy_manager.GetEnergySource();
-        if (!power_source) return false; 
+        EntityAI powerSource = energyManager.GetEnergySource();
+        if (!powerSource) return false;
 
-        ComponentEnergyManager source_em = power_source.GetCompEM();
-        if (source_em)
-        {
-            if (!source_em.IsSwitchedOn() || source_em.GetEnergy() <= 0) return false;
-        }
+        ComponentEnergyManager sourceEM = powerSource.GetCompEM();
+        if (sourceEM && (!sourceEM.IsSwitchedOn() || sourceEM.GetEnergy() <= 0)) return false;
+
+        return true;
+    }
+
+    protected ItemBase GetOutputCanister()
+    {
+        return ItemBase.Cast(FindAttachmentBySlotName("RecycleOutput"));
+    }
+
+    protected bool CanPumpIntoCanister(ItemBase canister)
+    {
+        if (!canister || canister.IsFullQuantity()) return false;
+
+        if (canister.GetQuantity() > 0 && canister.GetLiquidType() != 16777216) return false;
+
         return true;
     }
 
     override bool Server_CanStartProcess()
     {
-        if (!super.Server_CanStartProcess()) return false;
+        if (m_IsProcessing) return false;
         if (!IsEnergySourceRunning()) return false;
 
-        ItemBase outCanister = ItemBase.Cast(FindAttachmentBySlotName("RecycleOutput"));
-        if (!outCanister) return false;
-        if (outCanister.IsFullQuantity()) return false;
-        
-        if (outCanister.GetQuantity() > 0 && outCanister.GetLiquidType() != 16777216) return false;
+        ItemBase outputCanister = GetOutputCanister();
+        if (!CanPumpIntoCanister(outputCanister)) return false;
 
-        return IsNearOilDerrick();
+        if (!IsNearOilDerrick()) return false;
+
+        return true;
     }
 
     override void Server_StartProcess()
     {
-        super.Server_StartProcess();
+        if (!Server_CanStartProcess()) return;
+
+        if (!m_ProcessTimer) m_ProcessTimer = new Timer(CALL_CATEGORY_SYSTEM);
+
+        float processTime = 2.0;
+        CN_OilPumpConfig config = CN_OilPumpConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilPump"));
+        if (config && config.ProcessTimeSeconds >= 0.1) processTime = config.ProcessTimeSeconds;
+
+        m_IsProcessing = true;
         m_IsPumpWorking = true;
-        SetSynchDirty(); 
+        SetSynchDirty();
+
+        m_ProcessTimer.Run(processTime, this, "Server_ExecuteCycleTick", NULL, true);
     }
 
     override void Server_StopProcess()
     {
-        super.Server_StopProcess();
+        if (m_ProcessTimer) m_ProcessTimer.Stop();
+
+        m_IsProcessing = false;
         m_IsPumpWorking = false;
-        SetSynchDirty(); 
+        SetSynchDirty();
     }
 
     protected bool IsNearOilDerrick()
     {
         CN_OilPumpConfig config = CN_OilPumpConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilPump"));
-        float checkRadius = 15.0; 
+
+        float checkRadius = 15.0;
         if (config) checkRadius = config.OilDerrickCheckRadius;
 
         array<Object> nearbyObjects = new array<Object>;
@@ -65,54 +89,49 @@ modded class CN_OilPump
             {
                 for (int j = 0; j < config.OilDerrickClassnames.Count(); j++)
                 {
-                    string allowedDerrickClass = config.OilDerrickClassnames.Get(j);
-                    if (allowedDerrickClass != "" && obj.IsKindOf(allowedDerrickClass)) return true;
+                    string derrickClass = config.OilDerrickClassnames.Get(j);
+                    if (derrickClass != "" && obj.IsKindOf(derrickClass)) return true;
                 }
             }
         }
-        return false; 
+
+        return false;
     }
 
     override void Server_ExecuteCycleTick()
     {
+        if (!m_IsProcessing) return;
+
         if (!IsEnergySourceRunning() || !IsNearOilDerrick())
         {
             Server_StopProcess();
             return;
         }
 
-        ItemBase outCanister = ItemBase.Cast(FindAttachmentBySlotName("RecycleOutput"));
-        if (!outCanister || outCanister.IsFullQuantity())
-        {
-            Server_StopProcess();
-            return;
-        }
-
-        if (outCanister.GetQuantity() > 0 && outCanister.GetLiquidType() != 16777216)
+        ItemBase outputCanister = GetOutputCanister();
+        if (!CanPumpIntoCanister(outputCanister))
         {
             Server_StopProcess();
             return;
         }
 
         float fluidToPump = 300.0;
-        
-        // ИСПРАВЛЕНО: Заменили GetLiquidCapacity() на ванильный GetQuantityMax()
-        float itemFreeSpace = outCanister.GetQuantityMax() - outCanister.GetQuantity(); 
-        if (itemFreeSpace <= 0)
+        float freeSpace = outputCanister.GetQuantityMax() - outputCanister.GetQuantity();
+
+        if (freeSpace <= 0)
         {
             Server_StopProcess();
             return;
         }
 
-        if (fluidToPump > itemFreeSpace) fluidToPump = itemFreeSpace;
+        if (fluidToPump > freeSpace) fluidToPump = freeSpace;
 
-        if (outCanister.GetQuantity() == 0)
-        {
-            outCanister.SetLiquidType(16777216); 
-        }
+        if (outputCanister.GetQuantity() <= 0)
+            outputCanister.SetLiquidType(16777216);
 
-        outCanister.AddQuantity(fluidToPump);
+        outputCanister.AddQuantity(fluidToPump);
 
-        if (outCanister.IsFullQuantity()) Server_StopProcess();
+        if (outputCanister.IsFullQuantity())
+            Server_StopProcess();
     }
 }
