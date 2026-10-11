@@ -37,13 +37,13 @@ class ActionStartRecycler : ActionInteractBase
         return true;
     }
 
-    override void OnExecuteServer(ActionData action_data)
+        override void OnExecuteServer(ActionData action_data)
     {
         CN_MiningMachineBase machine = CN_MiningMachineBase.Cast(action_data.m_Target.GetObject());
-        if (machine) 
+        if (machine && machine.GetCompEM())
         {
-            // Тяжелые проверки (вышка, генератор, канистра) произойдут прямо здесь, внутри метода старта
-            machine.Server_StartProcess();
+            machine.GetCompEM().SwitchOn(); // Просто щелкаем тумблером, остальное сделает движок!
         }
     }
+
 };
