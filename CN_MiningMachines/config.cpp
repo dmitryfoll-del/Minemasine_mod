@@ -108,7 +108,7 @@ class CfgVehicles
 
         // --- ВАНИЛЬНЫЙ СПОСОБ ИНИЦИАЛИЗАЦИИ ЖИДКОСТИ ---
         // Задаем тип жидкости при спавне (ID Сырой нефти из вашего CN_LiquidTypes)
-        varLiquidTypeInit = 2097152; 
+        varLiquidTypeInit = 16777216; 
 
         // Задаем изначальное количество жидкости (20 литров)
         varQuantityInit = 10; 
