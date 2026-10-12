@@ -30,16 +30,16 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         return profile.GetLiquidType();
     }
 
-    // Валидация приёмного контейнера в указанном слоте на совместимость жидкостей и наличие места
+    // Проверяет совместимость контейнера по liquidContainerType, его содержимому и наличию места.
     protected bool IsOutputContainerValid(string slotName, int targetLiquidType)
     {
         ItemBase container = ItemBase.Cast(FindAttachmentBySlotName(slotName));
-        if (!container || container.IsFullQuantity()) return false;
-        
-        // Если в таре уже что-то налито, тип жидкости должен строго совпадать с целевым
-        if (container.GetQuantity() > 0 && container.GetLiquidType() != targetLiquidType) return false;
-        
-        return true;
+
+        if (!container || targetLiquidType <= 0)
+            return false;
+
+        // Ванильная проверка учитывает liquidContainerType, заполненность и уже налитую жидкость.
+        return Liquid.CanFillContainer(container, targetLiquidType);
     }
 
     override bool Server_CanStartProcess()
