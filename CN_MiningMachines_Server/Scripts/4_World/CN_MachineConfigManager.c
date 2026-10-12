@@ -77,28 +77,55 @@ class CN_MachineConfigManager
         if (!FileExist(path))
         {
             EnsureConfig(machineClassName);
-            if (!FileExist(path)) return null;
+            if (!FileExist(path))
+            {
+                Print("[CN_MiningMachines][ERROR] Не удалось создать конфигурацию: " + path);
+                return null;
+            }
         }
+
+        string errorMessage;
 
         if (machineClassName == "CN_OilPump")
         {
             CN_OilPumpConfig pumpConfig = new CN_OilPumpConfig();
-            JsonFileLoader<CN_OilPumpConfig>.JsonLoadFile(path, pumpConfig);
-            if (pumpConfig) return pumpConfig;
-        }
-        else if (machineClassName == "CN_OilDistiller")
-        {
-            CN_OilDistillerConfig distillerConfig = new CN_OilDistillerConfig();
-            JsonFileLoader<CN_OilDistillerConfig>.JsonLoadFile(path, distillerConfig);
-            if (distillerConfig) return distillerConfig;
-        }
-        else
-        {
-            CN_MachineConfig config = new CN_MachineConfig();
-            JsonFileLoader<CN_MachineConfig>.JsonLoadFile(path, config);
-            if (config) return config;
+
+            if (!JsonFileLoader<CN_OilPumpConfig>.LoadFile(path, pumpConfig, errorMessage))
+            {
+                Print("[CN_MiningMachines][ERROR] Не удалось прочитать JSON конфигурации " + path + ": " + errorMessage);
+                return null;
+            }
+
+            return pumpConfig;
         }
 
-        return null;
+        if (machineClassName == "CN_OilDistiller")
+        {
+            CN_OilDistillerConfig distillerConfig = new CN_OilDistillerConfig();
+
+            if (!JsonFileLoader<CN_OilDistillerConfig>.LoadFile(path, distillerConfig, errorMessage))
+            {
+                Print("[CN_MiningMachines][ERROR] Не удалось прочитать JSON конфигурации дистиллятора " + path + ": " + errorMessage);
+                return null;
+            }
+
+            if (!distillerConfig.Validate(errorMessage))
+            {
+                Print("[CN_MiningMachines][ERROR] Некорректная конфигурация дистиллятора " + path + ". Поле/параметр: " + errorMessage + " Запуск дистиллятора отменён.");
+                return null;
+            }
+
+            return distillerConfig;
+        }
+
+        CN_MachineConfig config = new CN_MachineConfig();
+
+        if (!JsonFileLoader<CN_MachineConfig>.LoadFile(path, config, errorMessage))
+        {
+            Print("[CN_MiningMachines][ERROR] Не удалось прочитать JSON конфигурации " + path + ": " + errorMessage);
+            return null;
+        }
+
+        return config;
     }
 }
