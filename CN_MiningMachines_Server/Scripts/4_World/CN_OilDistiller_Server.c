@@ -15,11 +15,19 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         Server_StopProcess();
     }
 
-    // Конвертирует строковое имя жидкости из JSON (например, "Gasoline") в числовой ID маски DayZ
+    // Получает числовой тип жидкости по класснейму из JSON-конфига.
+    // Если класснейм не зарегистрирован как жидкость, возвращает 0.
     protected int GetLiquidIdFromName(string liquidName)
     {
-        if (liquidName == "") return 0;
-        return LIQUID_CRUDE_OIL.GroupToFluidType(liquidName);
+        if (liquidName == "")
+            return 0;
+
+        NutritionalProfile profile = Liquid.GetNutritionalProfileByName(liquidName);
+
+        if (!profile || !profile.IsLiquid())
+            return 0;
+
+        return profile.GetLiquidType();
     }
 
     // Валидация приёмного контейнера в указанном слоте на совместимость жидкостей и наличие места
