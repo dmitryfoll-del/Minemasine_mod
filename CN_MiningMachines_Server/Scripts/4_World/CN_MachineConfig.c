@@ -26,3 +26,39 @@ class CN_OilPumpConfig : CN_MachineConfig
         LiquidVolumePerTick = 300.0; // Значение по умолчанию (дефолт)
     }
 }
+class CN_OilDistillerConfig : CN_MachineConfig
+{
+    float LiquidBurnVolumePerTick;  // Сколько мл сырья (нефти) поглощает за один тик (цикл)
+    float LiquidOutVolumePerTick;   // Сколько мл готового продукта (топлива) выдает за один тик
+    float LiquidWasteVolumePerTick; // Сколько мл жидкого брака заливать в тару (если WasteClass — жидкость)
+    float WasteAmountPerTick;       // Сколько единиц твердого отхода добавлять в стак (если WasteClass — предмет)
+
+    void CN_OilDistillerConfig()
+    {
+        // Время одного технологического цикла (тика) в секундах
+        ProcessTimeSeconds = 3.0;
+        
+        // ВАЖНО: Теперь это строковые идентификаторы жидкостей из масок DayZ!
+        OutputClass = "Gasoline";       // Основной продукт дистилляции (Ванильный бензин)
+        RareClass = "Gasoline";         // Редкий продукт дистилляции (Можно заменить на кастом, например, "CN_Kerosene")
+        
+        // Универсальное поле отходов:
+        // Вариант 1 (Твёрдый предмет): "CN_FuelWaste" (Мазут/гудрон, упадет в Cargo станка)
+        // Вариант 2 (Жидкость):       "CN_LiquidWaste" или "Water" (Будет сливаться в слот отходов RecycleWasteOutput)
+        WasteClass = "CN_FuelWaste";    
+        
+        // Настройка вероятностей (в процентах от 0.0 до 100.0)
+        RareChance = 10.0;              // Шанс получить фракцию из RareClass вместо OutputClass
+        WasteChance = 15.0;             // Шанс технологического сбоя/некондиции (выпадение отходов вместо топлива)
+        
+        // Настройка расходов и выходов жидкостей (в миллилитрах)
+        LiquidBurnVolumePerTick = 250.0;  // За тик сгорает 250 мл нефти
+        LiquidOutVolumePerTick = 200.0;   // При успехе выдает 200 мл топлива (50 мл уходит в летучий брак)
+        
+        // Настройка объёмов отходов
+        LiquidWasteVolumePerTick = 150.0; // Если отход жидкость — нальет 150 мл за тик брака
+        WasteAmountPerTick = 1.0;         // Если отход предмет — добавит 1 шт в стак за тик брака
+    }
+}
+
+
