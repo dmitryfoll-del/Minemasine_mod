@@ -1,7 +1,7 @@
-class CN_OilDistiller : CN_MiningMachine_Base
+class CN_OilDistiller : CN_MiningMachineBase
 {
     // Переменная для синхронизации состояния работы между сервером и клиентами
-    protected bool m_IsProcessing;
+    //protected bool m_IsProcessing;
 
     // Ссылки на активные эффекты (клиентская часть)
     protected EffectSound m_BoilingSound;
@@ -57,7 +57,7 @@ class CN_OilDistiller : CN_MiningMachine_Base
         {
             // Воспроизводим партикл (например, ванильный дым печки ParticleList.CAMP_STOVE_CHIMNEY)
             // И привязываем его к точке "Proxy_Exhaust" или "smoke" в памяти твоей 3D-модели (p3d)
-            m_ExhaustParticle = ParticleManager.GetInstance().PlayOnObject(ParticleList.CAMP_STOVE_CHIMNEY, this, GetMemoryPointPos("smoke"));
+            m_ExhaustParticle = ParticleManager.GetInstance().PlayOnObject(ParticleList.COOKING_BURNING_DONE, this, GetMemoryPointPos("smoke"));
         }
     }
 
@@ -86,4 +86,18 @@ class CN_OilDistiller : CN_MiningMachine_Base
         super.EEDelete(parent);
         Client_StopEffects();
     }
+	override bool IsDeployable()
+	{
+		return true;
+	}
+	override string GetDeploySoundset()
+	{
+		return "placeBatteryCharger_SoundSet";
+	}
+	override bool IsElectricAppliance()
+    {
+        return true;
+    }
+	
 }
+	
