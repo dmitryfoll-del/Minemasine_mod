@@ -58,6 +58,13 @@ class CfgSlots
         displayName = "$STR_CN_Slot_RecycleRare";
         ghostIcon = "set:dayz_inventory image:gascanister";
     };
+	class Slot_RecycleWaste
+    {
+        name = "RecycleWaste";                       // Системное имя (используется в коде)
+        displayName = "Отходы переработки";          // Название, которое увидит игрок в инвентаре
+        //ghostIcon = "set:dayz_inventory image:cat_common_cargo"; // Дефолтная прозрачная иконка пустого слота
+		ghostIcon = "set:dayz_inventory image:gascanister";
+    };
 };
 
 class CfgLiquidDefinitions
@@ -204,6 +211,7 @@ class CfgVehicles
                 attachmentSlots[] = {"RecycleRare"};
                 icon = "set:dayz_inventory image:cat_common";
             };
+			
         };
     };
 
@@ -345,6 +353,12 @@ class CfgNonAIVehicles
 			"RecycleOutput"
 		};
 	};
+	class ProxyRecycleWaste: ProxyAttachment
+    {
+        scope = 2;
+        inventorySlot = "RecycleWaste";
+        model = ""; // Оставляем пустым, движок сам подставит p3d вставляемого предмета
+    };
 };
 
 // ================= АУДИО-КОНФИГУРАЦИЯ ДЛЯ КЛИЕНТСКИХ ЗВУКОВ =================
