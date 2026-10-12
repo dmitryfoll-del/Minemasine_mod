@@ -5,7 +5,7 @@ class CfgPatches
         units[] = {"CN_MiningMachineBase", "CN_OreExtractor"};
         weapons[] = {};
         requiredVersion = 0.1;
-        requiredAddons[] = {"DZ_Data"};
+        requiredAddons[] = {"DZ_Data", "DZ_Vehicles_Parts"};
     };
 };
 
@@ -67,11 +67,17 @@ class CfgLiquidDefinitions
         type = 8388608; 
         displayName = "#STR_CN_LIQUID_KEROSENE"; // Ссылка на токен из stringtable.csv
         flammability = 30;
+		liquidBoilingThreshold=999;
         class Nutrition
         {
-            energy = 0;
-            water = 0;
-            toxicity = 100;
+            fullnessIndex=1;
+			energy=5;
+			water=0;
+			nutritionalIndex=75;
+			toxicity=1;
+			digestibility=2;
+			agents=16;
+			agentsPerDigest=300;
         };
     };
     class CrudeOil
@@ -81,9 +87,14 @@ class CfgLiquidDefinitions
         flammability = 10;
         class Nutrition
         {
-            energy = 0;
-            water = 0;
-            toxicity = 150;
+            fullnessIndex=1;
+			energy=5;
+			water=0;
+			nutritionalIndex=75;
+			toxicity=1;
+			digestibility=2;
+			agents=16;
+			agentsPerDigest=300;
         };
     };
 };
@@ -92,7 +103,10 @@ class CfgVehicles
 {
     class ItemBase;
 	class Inventory_Base;
-    class CanisterGasoline;
+	class Bottle_Base;
+	class Container_Base;
+    class CanisterGasoline;	
+	class Barrel_ColorBase;
 
     
     
@@ -102,7 +116,8 @@ class CfgVehicles
         scope = 2; // Предмет доступен в спавнере и типах (types.xml)
         displayName = "#STR_CN_ITEM_CRUDE_OIL_CANISTER"; 
         descriptionShort = "#STR_CN_ITEM_CRUDE_OIL_CANISTER_DESC"; 
-		inventorySlot[] = {"CanisterGasoline", "RecycleOutput"};
+		model="\dz\vehicles\parts\oil_bottle.p3d";
+		inventorySlot[] = {"CanisterGasoline", "RecycleInput", "RecycleOutput", "RecycleRare"};
         
         // Меняем цвет канистры на лету (dz текстура jerrycan)
         hiddenSelectionsTextures[] = {"\dz\gear\containers\data\jerrycan_co.paa"}; 
@@ -112,13 +127,28 @@ class CfgVehicles
         varLiquidTypeInit = 16777216; 
 
         // Задаем изначальное количество жидкости (20 литров)
-        varQuantityInit = 10; 
+        varQuantityInit = 0; 
 
         // (Опционально) Если хотите, чтобы в ЭТУ канистру игроки могли наливать ТОЛЬКО нефть,
         // раскомментируйте строчку ниже. Если оставить её закомментированной, в пустую канистру можно будет налить бензин или воду.
         liquidContainerType = "1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048 + 4096 + 8192 + 16384 + 32768 + 65536 + 131072 + 262144 + 524288 + 2097152 + 4194304 - (1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256) - 32768 + 8388608 + 16777216";
 
     };
+	
+	class CN_CrudeOilBarrel : Barrel_ColorBase{
+		scope = 2;
+		varQuantityInit=0;
+		varQuantityMin=0;
+		varQuantityMax=200000;
+		varLiquidTypeInit = 16777216; 
+		liquidContainerType = "1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048 + 4096 + 8192 + 16384 + 32768 + 65536 + 131072 + 262144 + 524288 + 2097152 + 4194304 - (1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256) - 32768 + 8388608 + 16777216";
+		hiddenSelectionsTextures[]=
+		{
+			"\dz\gear\containers\data\barrel_red_co.paa"
+		};
+		inventorySlot[] = {"55galDrum_1", "55galDrum_2", "55galDrum_3", "55galDrum_4", "55galDrum_5", "55galDrum_6", "55galDrum_7", "55galDrum_8", "55galDrum_9", "55galDrum_10", "55galDrum_11", "55galDrum_12", "Truck_01_Barrel1", "Truck_01_Barrel2", "Truck_01_Barrel3", "Truck_01_Barrel4", "Truck_01_Barrel5", "Truck_01_Barrel6", "Truck_01_Barrel7", "Truck_01_Barrel8", "Truck_01_Barrel9", "Truck_01_Barrel10", "Truck_01_Barrel11", "Truck_01_Barrel12", "BarrelColorBaseSlot", "Barrel_1a", "Barrel_2b", "Barrel_3c", "Barrel_4d", "Barrel_5e", "Barrel_6f", "RecycleInput", "RecycleOutput", "RecycleRare"};
+	};
+		
 
 
 
@@ -131,9 +161,15 @@ class CfgVehicles
         weight = 10000;
         itemSize[] = {5,5};
 		heavyItem=1;
-        itemsCargoSize[] = {5,5};
+        //itemsCargoSize[] = {5,5};
+		physLayer = "item_large";
         attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare"};
-
+		class Cargo
+		{
+			itemsCargoSize[]={10,5};
+			openable=0;
+			allowOwnedCargoManipulation=1;
+		};
         class EnergyManager
         {
             hasIcon = 1;
@@ -180,7 +216,7 @@ class CfgVehicles
 		soundImpactType="metal";
 		itemSize[] = {10,15};
 		heavyItem=1;
-        itemsCargoSize[] = {2,3};
+        //itemsCargoSize[] = {2,3};
         // Для работы нужна только канистра на выход
         attachments[] = 
 		{
@@ -192,6 +228,7 @@ class CfgVehicles
             class CN_ProcessingZones
             {
                 name = "Выход продукции";
+				icon = "cat_common_cargo";
                 attachmentSlots[] = 
 				{
 					"RecycleOutput"
