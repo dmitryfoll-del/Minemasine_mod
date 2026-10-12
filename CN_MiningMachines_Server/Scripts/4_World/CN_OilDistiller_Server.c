@@ -244,14 +244,12 @@ modded class CN_OilDistiller : CN_MiningMachineBase
 				fuelToGive = freeSpace;
 				oilToBurn = (fuelToGive / config.LiquidOutVolumePerTick) * config.LiquidBurnVolumePerTick;
 			}
-			if 
-			{
-				(outputContainer.GetQuantity() <= 0)
+			if (outputContainer.GetQuantity() <= 0)
 				outputContainer.SetLiquidType(targetLiquid);
-				outputContainer.AddQuantity(fuelToGive);
-				inputContainer.AddQuantity(-oilToBurn);
-				Print("[CN_DISTILL_LOG] Успех! Продукт добавлен в слот " + targetSlot);
-			}
+
+			outputContainer.AddQuantity(fuelToGive);
+			inputContainer.AddQuantity(-oilToBurn);
+			Print("[CN_DISTILL_LOG] Успех! Продукт добавлен в слот " + targetSlot);
 			// Финальная проверка на опустошение сырья
 			if (inputContainer.GetQuantity() <= 0)
 			{
