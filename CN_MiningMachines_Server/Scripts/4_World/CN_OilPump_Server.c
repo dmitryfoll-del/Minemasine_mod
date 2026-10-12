@@ -1,4 +1,4 @@
-modded class CN_OilPump
+modded class CN_OilPump : CN_MiningMachineBase
 {
     // =================================================================
     // ВАНИЛЬНЫЕ СОБЫТИЯ ЭНЕРГОМЕНЕДЖЕРА (КАК В SPOTLIGHT / GENERATOR)

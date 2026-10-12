@@ -1,4 +1,4 @@
-modded class CN_MiningMachineBase
+modded class CN_MiningMachineBase extends ItemBase
 {
     protected ref CN_MachineConfig m_ServerConfig;
     // ИСПРАВЛЕНО: Добавлен обязательный сильный ref для таймера

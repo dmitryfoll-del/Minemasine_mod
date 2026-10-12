@@ -1,4 +1,4 @@
-modded class CN_OilDistiller
+modded class CN_OilDistiller : CN_MiningMachineBase
 {
     // Системный идентификатор (битовая маска) сырой нефти
     protected const int LIQUID_CRUDE_OIL = 16777216;
