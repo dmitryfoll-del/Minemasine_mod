@@ -23,6 +23,7 @@ class CN_OilPump : CN_MiningMachineBase
         AddAction(ActionPlugIn);
         AddAction(ActionUnplugThisByCord);
 		AddAction(ActionPlaceObject);
+		AddAction(ActionTogglePlaceObject);
     }
 
     override bool IsElectricAppliance()
