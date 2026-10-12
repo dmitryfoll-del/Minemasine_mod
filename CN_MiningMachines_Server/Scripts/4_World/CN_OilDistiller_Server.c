@@ -237,24 +237,26 @@ modded class CN_OilDistiller : CN_MiningMachineBase
                 if (GetCompEM()) GetCompEM().SwitchOff();
                 return;
             }
-float fuelToGive = config.LiquidOutVolumePerTick;
-float freeSpace = outputContainer.GetQuantityMax() - outputContainer.GetQuantity();
-if (fuelToGive > freeSpace)
-{
-fuelToGive = freeSpace;
-oilToBurn = (fuelToGive / config.LiquidOutVolumePerTick) * config.LiquidBurnVolumePerTick;
-}
-if (outputContainer.GetQuantity() <= 0)
-outputContainer.SetLiquidType(targetLiquid);
-outputContainer.AddQuantity(fuelToGive);
-inputContainer.AddQuantity(-oilToBurn);
-Print("[CN_DISTILL_LOG] Успех! Продукт добавлен в слот " + targetSlot);
-}
-// Финальная проверка на опустошение сырья
-if (inputContainer.GetQuantity() <= 0)
-{
-Server_StopProcess();
-if (GetCompEM()) GetCompEM().SwitchOff();
-}
-}
+			float fuelToGive = config.LiquidOutVolumePerTick;
+			float freeSpace = outputContainer.GetQuantityMax() - outputContainer.GetQuantity();
+			if (fuelToGive > freeSpace)
+			{
+				fuelToGive = freeSpace;
+				oilToBurn = (fuelToGive / config.LiquidOutVolumePerTick) * config.LiquidBurnVolumePerTick;
+			}
+			if 
+			{
+				(outputContainer.GetQuantity() <= 0)
+				outputContainer.SetLiquidType(targetLiquid);
+				outputContainer.AddQuantity(fuelToGive);
+				inputContainer.AddQuantity(-oilToBurn);
+				Print("[CN_DISTILL_LOG] Успех! Продукт добавлен в слот " + targetSlot);
+			}
+			// Финальная проверка на опустошение сырья
+			if (inputContainer.GetQuantity() <= 0)
+			{
+				Server_StopProcess();
+				if (GetCompEM()) GetCompEM().SwitchOff();
+			}
+	}
 }
