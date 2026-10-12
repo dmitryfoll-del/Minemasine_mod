@@ -282,43 +282,54 @@ class CfgVehicles
 		};
     };
 
-    class CN_OilDistiller: CN_MiningMachineBase
+    class CN_OilDistiller: CN_MiningMachine_Base
     {
         scope = 2;
-        displayName = "#STR_CN_VEHICLE_OIL_DISTILLER"; // Ссылка на токен названия из stringtable.csv
-        descriptionShort = "#STR_CN_VEHICLE_OIL_DISTILLER_DESC"; // Ссылка на токен описания из stringtable.csv
-        model = "DZ\structures\furniture\kitchen\stove\stove.p3d";
-
-        attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare", "Firewood", "WoodenStick"};
+        displayName = "Перегонная Машина (Дистиллятор)";
+        descriptionShort = "Промышленный модульный дистиллятор. Перегоняет сырую нефть в жидкое топливо различных фракций.";
+        model = "\CN_MiningMachines\Data\OilDistiller.p3d"; // Путь к твоей 3D модели
         
+        // Подключаем встроенные скриптовые компоненты DayZ (Энергосеть и Инвентарь)
+        class EventHandlers
+        {
+            class CN_OilDistiller_Handlers
+            {
+                init = "(_this select 0).GetInventory().LockInventory(HIDE_INV_FROM_SCRIPT);";
+            };
+        };
+
+        // НАСТРОЙКА ИНВЕНТАРЯ И СЛОТОВ МОДА
+        // Регистрируем ровно 4 твоих предопределённых слота
+        attachments[] = {
+            "RecycleInput",
+            "RecycleOutput",
+            "RecycleRare",
+            "RecycleWaste"
+        };
+
         class GUIInventoryAttachmentsProps
         {
-            class CN_ProcessingZones
+            class EngineProcessing
             {
-                name = "Линии перегонки";
-                attachmentSlots[] = {"RecycleInput", "RecycleOutput", "RecycleRare"}; 
-            };
-            class CN_FireplaceZone
-            {
-                name = "Топка костра";
-                attachmentSlots[] = {"Firewood", "WoodenStick"};
+                name = "Технологический Процесс";
+                description = "Слоты для сырья, готового топлива и отходов переработки.";
+                attachmentSlots[] = {
+                    "RecycleInput",
+                    "RecycleOutput",
+                    "RecycleRare",
+                    "RecycleWaste"
+                };
+                icon = "cat_common_cargo";
             };
         };
 
-        class EnergyManager
+        // Внутренний инвентарь станка (на случай, если игрок захочет хранить там инструменты)
+        class Cargo
         {
-            switchOnAtSpawn = 0;
-            isInteractive = 1;
-            hasIcon = 1;
-            plugType = 1;
-            energyUsagePerSecond = 1.0; 
+            itemsCargoSize[] = {10, 5}; // Сетка 10х5 ячеек
+            openable = 0;
+            allowOwnedCargoManipulation = 1;
         };
-    };
-    class CN_OreExtractor: CN_MiningMachineBase
-    {
-        scope = 2;
-        displayName = "$STR_CN_OreExtractor_Name";
-        descriptionShort = "$STR_CN_OreExtractor_Desc";
     };
 };
 
@@ -334,4 +345,28 @@ class CfgNonAIVehicles
 			"RecycleOutput"
 		};
 	};
+};
+
+// ================= АУДИО-КОНФИГУРАЦИЯ ДЛЯ КЛИЕНТСКИХ ЗВУКОВ =================
+class CfgSoundShaders
+{
+    class CN_OilDistiller_Boiling_SoundShader
+    {
+        // Путь к твоему .ogg звуковому файлу петли кипения/бурления нефти
+        samples[] = {{"CN_MiningMachines\Data\Sounds\OilDistiller_Boiling_Loop", 1}};
+        volume = 0.75; // Громкость эффекта
+        range = 25;    // Дистанция в метрах, на которой игроки будут слышать станок
+    };
+};
+
+class CfgSoundSets
+{
+    class CN_OilDistiller_Boiling_SoundSet
+    {
+        soundShaders[] = {"CN_OilDistiller_Boiling_SoundShader"};
+        soundPositionType = 1; // Позиционирование звука в 3D пространстве на объекте
+        volumeFactor = 1.0;
+        spatial = 1;
+        loop = 1;              // Включаем зацикливание (звук играет бесконечно, пока работает станок)
+    };
 };
