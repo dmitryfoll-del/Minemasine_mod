@@ -14,8 +14,8 @@ class CN_MachineConfigManager
     {
         m_MachineClasses = new array<string>;
         m_MachineClasses.Insert("CN_OreExtractor");
-        m_MachineClasses.Insert("CN_OilDistiller"); 
-        m_MachineClasses.Insert("CN_OilPump");      
+        m_MachineClasses.Insert("CN_OilDistiller");
+        m_MachineClasses.Insert("CN_OilPump");
     }
 
     void Initialize()
@@ -39,28 +39,30 @@ class CN_MachineConfigManager
         if (machineClassName == "CN_OilPump")
         {
             CN_OilPumpConfig pumpConfig = new CN_OilPumpConfig();
-            
+
             pumpConfig.OilDerrickClassnames = new array<string>;
             pumpConfig.OilDerrickClassnames.Insert("Land_Ind_Oil_Derrick");
             pumpConfig.OilDerrickClassnames.Insert("Land_FuelStation_Feed");
             pumpConfig.OilDerrickCheckRadius = 15.0;
 
-            pumpConfig.ProcessTimeSeconds = 2.0; 
+            pumpConfig.ProcessTimeSeconds = 2.0;
             pumpConfig.EnergyUsagePerSecond = 1.5;
-            pumpConfig.LiquidVolumePerTick = 300.0; // ИСПРАВЛЕНО: Записываем дефолт в JSON
+            pumpConfig.LiquidVolumePerTick = 300.0;
 
-
-            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
             JsonFileLoader<CN_OilPumpConfig>.JsonSaveFile(path, pumpConfig);
+        }
+        else if (machineClassName == "CN_OilDistiller")
+        {
+            CN_OilDistillerConfig distillerConfig = new CN_OilDistillerConfig();
+            JsonFileLoader<CN_OilDistillerConfig>.JsonSaveFile(path, distillerConfig);
         }
         else
         {
             CN_MachineConfig config = new CN_MachineConfig();
-            
+
             config.ProcessTimeSeconds = 1.0;
             config.EnergyUsagePerSecond = 1.0;
 
-            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
             JsonFileLoader<CN_MachineConfig>.JsonSaveFile(path, config);
         }
 
@@ -81,14 +83,18 @@ class CN_MachineConfigManager
         if (machineClassName == "CN_OilPump")
         {
             CN_OilPumpConfig pumpConfig = new CN_OilPumpConfig();
-            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
             JsonFileLoader<CN_OilPumpConfig>.JsonLoadFile(path, pumpConfig);
             if (pumpConfig) return pumpConfig;
+        }
+        else if (machineClassName == "CN_OilDistiller")
+        {
+            CN_OilDistillerConfig distillerConfig = new CN_OilDistillerConfig();
+            JsonFileLoader<CN_OilDistillerConfig>.JsonLoadFile(path, distillerConfig);
+            if (distillerConfig) return distillerConfig;
         }
         else
         {
             CN_MachineConfig config = new CN_MachineConfig();
-            // ИСПРАВЛЕНО СТРОГО ПО ОБРАЗЦУ LOOTSAVER:
             JsonFileLoader<CN_MachineConfig>.JsonLoadFile(path, config);
             if (config) return config;
         }
