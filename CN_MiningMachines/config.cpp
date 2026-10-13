@@ -124,7 +124,7 @@ class CfgVehicles
         displayName = "#STR_CN_ITEM_CRUDE_OIL_CANISTER"; 
         descriptionShort = "#STR_CN_ITEM_CRUDE_OIL_CANISTER_DESC"; 
 		model="\dz\vehicles\parts\oil_bottle.p3d";
-		inventorySlot[] = {"CanisterGasoline", "RecycleInput", "RecycleOutput", "RecycleRare"};
+		inventorySlot[] = {"CanisterGasoline", "RecycleInput", "RecycleOutput", "RecycleRare", "RecycleWaste"};
         
         // Меняем цвет канистры на лету (dz текстура jerrycan)
         hiddenSelectionsTextures[] = {"\dz\gear\containers\data\jerrycan_co.paa"}; 
@@ -153,7 +153,7 @@ class CfgVehicles
 		{
 			"\dz\gear\containers\data\barrel_red_co.paa"
 		};
-		inventorySlot[] = {"55galDrum_1", "55galDrum_2", "55galDrum_3", "55galDrum_4", "55galDrum_5", "55galDrum_6", "55galDrum_7", "55galDrum_8", "55galDrum_9", "55galDrum_10", "55galDrum_11", "55galDrum_12", "Truck_01_Barrel1", "Truck_01_Barrel2", "Truck_01_Barrel3", "Truck_01_Barrel4", "Truck_01_Barrel5", "Truck_01_Barrel6", "Truck_01_Barrel7", "Truck_01_Barrel8", "Truck_01_Barrel9", "Truck_01_Barrel10", "Truck_01_Barrel11", "Truck_01_Barrel12", "BarrelColorBaseSlot", "Barrel_1a", "Barrel_2b", "Barrel_3c", "Barrel_4d", "Barrel_5e", "Barrel_6f", "RecycleInput", "RecycleOutput", "RecycleRare"};
+		inventorySlot[] = {"55galDrum_1", "55galDrum_2", "55galDrum_3", "55galDrum_4", "55galDrum_5", "55galDrum_6", "55galDrum_7", "55galDrum_8", "55galDrum_9", "55galDrum_10", "55galDrum_11", "55galDrum_12", "Truck_01_Barrel1", "Truck_01_Barrel2", "Truck_01_Barrel3", "Truck_01_Barrel4", "Truck_01_Barrel5", "Truck_01_Barrel6", "Truck_01_Barrel7", "Truck_01_Barrel8", "Truck_01_Barrel9", "Truck_01_Barrel10", "Truck_01_Barrel11", "Truck_01_Barrel12", "BarrelColorBaseSlot", "Barrel_1a", "Barrel_2b", "Barrel_3c", "Barrel_4d", "Barrel_5e", "Barrel_6f", "RecycleInput", "RecycleOutput", "RecycleRare", "RecycleWaste"};
 	};
 		
 
@@ -173,7 +173,7 @@ class CfgVehicles
         attachments[] = {"RecycleInput", "RecycleOutput", "RecycleRare"};
 		class Cargo
 		{
-			itemsCargoSize[]={10,5};
+			itemsCargoSize[]={2,3};
 			openable=0;
 			allowOwnedCargoManipulation=1;
 		};
@@ -295,8 +295,10 @@ class CfgVehicles
         scope = 2;
         displayName = "Перегонная Машина (Дистиллятор)";
         descriptionShort = "Промышленный модульный дистиллятор. Перегоняет сырую нефть в жидкое топливо различных фракций.";
-        model = "\CN_MiningMachines\Data\OilDistiller.p3d"; // Путь к твоей 3D модели
+        model = "\CN_MiningMachines\OilDistiller.p3d"; // Путь к твоей 3D модели
         
+       
+
         // НАСТРОЙКА ИНВЕНТАРЯ И СЛОТОВ МОДА
         // Регистрируем ровно 4 твоих предопределённых слота
         attachments[] = {
@@ -325,9 +327,18 @@ class CfgVehicles
         // Внутренний инвентарь станка (на случай, если игрок захочет хранить там инструменты)
         class Cargo
         {
-            itemsCargoSize[] = {10, 5}; // Сетка 10х5 ячеек
+            itemsCargoSize[] = {2, 3}; // Сетка 10х5 ячеек
             openable = 0;
             allowOwnedCargoManipulation = 1;
+        };
+		class EnergyManager
+        {
+            cordLength=15;
+			plugType=2;
+			updateInterval=50;
+			hasIcon=1;
+			energyUsagePerSecond=0.14;
+			cordTextureFile="DZ\gear\camping\Data\plug_black_CO.paa";
         };
     };
 };
