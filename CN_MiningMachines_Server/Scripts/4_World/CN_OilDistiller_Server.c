@@ -135,9 +135,18 @@ modded class CN_OilDistiller : CN_MiningMachineBase
             return;
         }
 
-        // Текущий объём сырья на сжигание за этот тик
+        // Некорректные объёмы не должны запускать цикл или расходовать сырьё.
+        if (config.LiquidOutVolumePerTick <= 0 || config.LiquidBurnVolumePerTick <= 0)
+        {
+            Print("[CN_DISTILL_LOG] Стоп: LiquidOutVolumePerTick и LiquidBurnVolumePerTick должны быть больше нуля.");
+            Server_StopProcess();
+            if (GetCompEM()) GetCompEM().SwitchOff();
+            return;
+        }
+
+        // Текущий объём сырья на сжигание за этот тик.
         float oilToBurn = config.LiquidBurnVolumePerTick;
-        if (oilToBurn > inputContainer.GetQuantity()) 
+        if (oilToBurn > inputContainer.GetQuantity())
             oilToBurn = inputContainer.GetQuantity();
 
         float roll = Math.RandomFloat(0.0, 100.0);
@@ -248,17 +257,23 @@ modded class CN_OilDistiller : CN_MiningMachineBase
                 return;
             }
 			float fuelToGive = config.LiquidOutVolumePerTick;
-			float freeSpace = outputContainer.GetQuantityMax() - outputContainer.GetQuantity();
-			if (fuelToGive > freeSpace)
-			{
-				fuelToGive = freeSpace;
-				oilToBurn = (fuelToGive / config.LiquidOutVolumePerTick) * config.LiquidBurnVolumePerTick;
-			}
-			if (outputContainer.GetQuantity() <= 0)
-				outputContainer.SetLiquidType(targetLiquid);
+            float freeSpace = outputContainer.GetQuantityMax() - outputContainer.GetQuantity();
 
-			outputContainer.AddQuantity(fuelToGive);
-			inputContainer.AddQuantity(-oilToBurn);
+            // Цикл выполняется только при наличии места для полного объёма продукта.
+            // Если места недостаточно, останавливаемся без добавления продукта и списания сырья.
+            if (freeSpace < fuelToGive)
+            {
+                Print("[CN_DISTILL_LOG] Стоп: в слоте " + targetSlot + " недостаточно свободного объёма для полного цикла.");
+                Server_StopProcess();
+                if (GetCompEM()) GetCompEM().SwitchOff();
+                return;
+            }
+
+            if (outputContainer.GetQuantity() <= 0)
+                outputContainer.SetLiquidType(targetLiquid);
+
+            outputContainer.AddQuantity(fuelToGive);
+            inputContainer.AddQuantity(-oilToBurn);
 			Print("[CN_DISTILL_LOG] Успех! Продукт добавлен в слот " + targetSlot);
 			// Финальная проверка на опустошение сырья
 			if (inputContainer.GetQuantity() <= 0)
