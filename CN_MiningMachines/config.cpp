@@ -297,15 +297,6 @@ class CfgVehicles
         descriptionShort = "Промышленный модульный дистиллятор. Перегоняет сырую нефть в жидкое топливо различных фракций.";
         model = "\CN_MiningMachines\Data\OilDistiller.p3d"; // Путь к твоей 3D модели
         
-        // Подключаем встроенные скриптовые компоненты DayZ (Энергосеть и Инвентарь)
-        class EventHandlers
-        {
-            class CN_OilDistiller_Handlers
-            {
-                init = "(_this select 0).GetInventory().LockInventory(HIDE_INV_FROM_SCRIPT);";
-            };
-        };
-
         // НАСТРОЙКА ИНВЕНТАРЯ И СЛОТОВ МОДА
         // Регистрируем ровно 4 твоих предопределённых слота
         attachments[] = {
