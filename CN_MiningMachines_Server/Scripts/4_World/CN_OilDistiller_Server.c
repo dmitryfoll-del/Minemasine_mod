@@ -67,7 +67,8 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         bool hasValidMainOutput = IsOutputContainerValid("RecycleOutput", mainLiquidType);
         bool hasValidRareOutput = IsOutputContainerValid("RecycleRare", rareLiquidType);
 
-        if (!hasValidMainOutput && !hasValidRareOutput) return false;
+        // Оба выходных слота обязательны: каждый должен принимать свою жидкость.
+        if (!hasValidMainOutput || !hasValidRareOutput) return false;
 
         return true;
     }
@@ -118,6 +119,17 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         ItemBase inputContainer = ItemBase.Cast(FindAttachmentBySlotName("RecycleInput"));
         if (!inputContainer || inputContainer.GetLiquidType() != LIQUID_CRUDE_OIL || inputContainer.GetQuantity() <= 0)
         {
+            Server_StopProcess();
+            if (GetCompEM()) GetCompEM().SwitchOff();
+            return;
+        }
+
+        // Оба выходных контейнера должны оставаться доступными и совместимыми во время работы.
+        int mainLiquidType = GetLiquidIdFromName(config.OutputClass);
+        int rareLiquidType = GetLiquidIdFromName(config.RareClass);
+        if (!IsOutputContainerValid("RecycleOutput", mainLiquidType) || !IsOutputContainerValid("RecycleRare", rareLiquidType))
+        {
+            Print("[CN_DISTILL_LOG] Стоп: один из обязательных выходных слотов недоступен или содержит несовместимую жидкость.");
             Server_StopProcess();
             if (GetCompEM()) GetCompEM().SwitchOff();
             return;
@@ -216,9 +228,6 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         // ================= СЛУЧАЙ 2: УСПЕШНАЯ ДИСТИЛЛЯЦИЯ (СЛОТЫ RECYCLEOUTPUT И RECYCLERARE) =================
         else
         {
-            int mainLiquidType = GetLiquidIdFromName(config.OutputClass);
-            int rareLiquidType = GetLiquidIdFromName(config.RareClass);
-
             string targetSlot = "RecycleOutput";
             int targetLiquid = mainLiquidType;
 
@@ -230,15 +239,8 @@ modded class CN_OilDistiller : CN_MiningMachineBase
 
             ItemBase outputContainer = ItemBase.Cast(FindAttachmentBySlotName(targetSlot));
             
-            // Если выпала редкая фракция, но слот RecycleRare пуст или забит — делаем откат в RecycleOutput
-            if (targetSlot == "RecycleRare" && (!outputContainer || outputContainer.IsFullQuantity() || (outputContainer.GetQuantity() > 0 && outputContainer.GetLiquidType() != rareLiquidType)))
-            {
-                targetSlot = "RecycleOutput";
-                targetLiquid = mainLiquidType;
-                outputContainer = ItemBase.Cast(FindAttachmentBySlotName(targetSlot));
-            }
-
-            if (!outputContainer || outputContainer.IsFullQuantity() || (outputContainer.GetQuantity() > 0 && outputContainer.GetLiquidType() != targetLiquid))
+            // Результат отправляется только в предназначенный слот; резервного перенаправления нет.
+            if (!outputContainer || !Liquid.CanFillContainer(outputContainer, targetLiquid))
             {
                 Print("[CN_DISTILL_LOG] Стоп: Целевой слот " + targetSlot + " недоступен или забит.");
                 Server_StopProcess();
