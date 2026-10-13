@@ -1,7 +1,6 @@
 class CN_MachineConfig
 {
     float ProcessTimeSeconds = 1.0;
-    float EnergyUsagePerSecond = 1.0; // ИСПРАВЛЕНО: Теперь переменная официально существует!
     string InputClass = "";
     string OutputClass = "";
     string RareClass = "";
@@ -65,12 +64,6 @@ class CN_OilDistillerConfig : CN_MachineConfig
         if (ProcessTimeSeconds < 0.1)
         {
             errorMessage = "ProcessTimeSeconds должен быть не меньше 0.1 секунды.";
-            return false;
-        }
-
-        if (EnergyUsagePerSecond < 0.0)
-        {
-            errorMessage = "EnergyUsagePerSecond не может быть отрицательным.";
             return false;
         }
 
