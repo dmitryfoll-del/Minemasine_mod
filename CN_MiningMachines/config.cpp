@@ -290,7 +290,7 @@ class CfgVehicles
 		};
     };
 
-    class CN_OilDistiller: CN_MiningMachine_Base
+    class CN_OilDistiller: CN_MiningMachineBase
     {
         scope = 2;
         displayName = "Перегонная Машина (Дистиллятор)";
