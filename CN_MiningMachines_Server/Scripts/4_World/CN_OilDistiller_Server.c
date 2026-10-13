@@ -47,7 +47,7 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         if (m_IsProcessing) return false;
 
         CN_OilDistillerConfig config = CN_OilDistillerConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilDistiller"));
-        if (!config || !IsPowered()) return false;
+        if (!config || !GetCompEM() || !GetCompEM().IsWorking()) return false;
 
         // 1. ПРОВЕРКА ВХОДА (RecycleInput) — тара с нефтью
         ItemBase inputContainer = ItemBase.Cast(FindAttachmentBySlotName("RecycleInput"));
@@ -129,7 +129,7 @@ modded class CN_OilDistiller : CN_MiningMachineBase
             return;
 
         CN_OilDistillerConfig config = CN_OilDistillerConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilDistiller"));
-        if (!config || !IsPowered())
+        if (!config || !GetCompEM() || !GetCompEM().IsWorking())
         {
             Server_StopProcess();
             if (GetCompEM()) GetCompEM().SwitchOff();
