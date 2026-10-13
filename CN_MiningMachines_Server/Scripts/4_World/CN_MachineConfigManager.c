@@ -46,7 +46,6 @@ class CN_MachineConfigManager
             pumpConfig.OilDerrickCheckRadius = 15.0;
 
             pumpConfig.ProcessTimeSeconds = 2.0;
-            pumpConfig.EnergyUsagePerSecond = 1.5;
             pumpConfig.LiquidVolumePerTick = 300.0;
 
             JsonFileLoader<CN_OilPumpConfig>.JsonSaveFile(path, pumpConfig);
@@ -61,7 +60,6 @@ class CN_MachineConfigManager
             CN_MachineConfig config = new CN_MachineConfig();
 
             config.ProcessTimeSeconds = 1.0;
-            config.EnergyUsagePerSecond = 1.0;
 
             JsonFileLoader<CN_MachineConfig>.JsonSaveFile(path, config);
         }
