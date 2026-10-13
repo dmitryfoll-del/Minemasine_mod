@@ -176,8 +176,7 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         }
 
         // Оба топливных контейнера обязательны и должны принимать настроенные жидкости.
-        if (!IsOutputContainerValid("RecycleOutput", mainLiquidType) ||
-            !IsOutputContainerValid("RecycleRare", rareLiquidType))
+        if (!IsOutputContainerValid("RecycleOutput", mainLiquidType) || !IsOutputContainerValid("RecycleRare", rareLiquidType))
         {
             Print("[CN_DISTILL_LOG] Стоп: один из обязательных выходных контейнеров недоступен или несовместим.");
             Server_StopProcess();
