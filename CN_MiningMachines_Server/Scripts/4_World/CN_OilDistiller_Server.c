@@ -137,12 +137,7 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         }
 
         // Защита от некорректной конфигурации и объёмов.
-        if (config.LiquidBurnVolumePerTick <= 0 || config.LiquidOutVolumePerTick <= 0 ||
-            config.LiquidWasteVolumePerTick <= 0 || config.WasteAmountPerTick <= 0 ||
-            config.WasteChance < 0 || config.WasteChance > 100 ||
-            config.RareChance < 0 || config.RareChance > 100 ||
-            (config.WasteChance + config.RareChance) > 100 ||
-            config.OutputClass == "" || config.RareClass == "" || config.WasteClass == "")
+        if (config.LiquidBurnVolumePerTick <= 0 || config.LiquidOutVolumePerTick <= 0 || config.LiquidWasteVolumePerTick <= 0 || config.WasteAmountPerTick <= 0 || config.WasteChance < 0 || config.WasteChance > 100 || config.RareChance < 0 || config.RareChance > 100 || (config.WasteChance + config.RareChance) > 100 || config.OutputClass == "" || config.RareClass == "" || config.WasteClass == "")
         {
             Print("[CN_DISTILL_LOG] Стоп: конфигурация содержит недопустимые значения.");
             Server_StopProcess();
