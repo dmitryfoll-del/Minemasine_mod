@@ -31,75 +31,28 @@ modded class CN_OilDistiller : CN_MiningMachineBase
     }
 
     // Проверяет совместимость контейнера по liquidContainerType, его содержимому и наличию места.
-    protected bool IsOutputContainerValid(string slotName, int targetLiquidType)
+    protected bool IsOutputContainerValid(string slotName, int expectedLiquidType)
     {
         ItemBase container = ItemBase.Cast(FindAttachmentBySlotName(slotName));
-
-        if (!container || targetLiquidType <= 0)
+        if (!container)
             return false;
 
-        // Ванильная проверка учитывает liquidContainerType, заполненность и уже налитую жидкость.
-        return Liquid.CanFillContainer(container, targetLiquidType);
+        if (!Liquid.CanFillContainer(container, expectedLiquidType))
+            return false;
+
+        float freeSpace = container.GetQuantityMax() - container.GetQuantity();
+        return freeSpace >= 0;
     }
 
-    override bool Server_CanStartProcess()
+    protected void Server_StartProcess()
     {
-        if (m_IsProcessing) return false;
-
-        CN_OilDistillerConfig config = CN_OilDistillerConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilDistiller"));
-        if (!config || !GetCompEM() || !GetCompEM().IsWorking()) return false;
-
-        // 1. ПРОВЕРКА ВХОДА (RecycleInput) — тара с нефтью
-        ItemBase inputContainer = ItemBase.Cast(FindAttachmentBySlotName("RecycleInput"));
-        if (!inputContainer || inputContainer.GetQuantity() <= 0 || inputContainer.GetLiquidType() != LIQUID_CRUDE_OIL) return false;
-
-        int mainLiquidType = GetLiquidIdFromName(config.OutputClass);
-        int rareLiquidType = GetLiquidIdFromName(config.RareClass);
-        int wasteLiquidType = GetLiquidIdFromName(config.WasteClass);
-
-        // 2. ПРОВЕРКА СЛОТА ОТХОДОВ (RecycleWaste) — если настроена жидкость
-        if (wasteLiquidType > 0)
-        {
-            if (!IsOutputContainerValid("RecycleWaste", wasteLiquidType)) return false;
-        }
-
-        // 3. ПРОВЕРКА ВЫХОДНЫХ СЛОТОВ ТОПЛИВА (RecycleOutput и RecycleRare)
-        bool hasValidMainOutput = IsOutputContainerValid("RecycleOutput", mainLiquidType);
-        bool hasValidRareOutput = IsOutputContainerValid("RecycleRare", rareLiquidType);
-
-        // Оба выходных слота обязательны: каждый должен принимать свою жидкость.
-        if (!hasValidMainOutput || !hasValidRareOutput) return false;
-
-        return true;
-    }
-
-    override void Server_StartProcess()
-    {
-        if (!Server_CanStartProcess())
-        {
-            if (GetCompEM()) GetCompEM().SwitchOff();
-            return;
-        }
-
-        if (!m_ProcessTimer) 
-            m_ProcessTimer = new Timer(CALL_CATEGORY_SYSTEM);
-
-        float processTime = 3.0;
-        CN_OilDistillerConfig config = CN_OilDistillerConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilDistiller"));
-        if (config && config.ProcessTimeSeconds >= 0.1) 
-            processTime = config.ProcessTimeSeconds;
-
         m_IsProcessing = true;
         SetSynchDirty();
-
-        m_ProcessTimer.Run(processTime, this, "Server_ExecuteCycleTick", NULL, true);
+        Print("[CN_DISTILL_LOG] Запуск процесса дистилляции.");
     }
 
-    override void Server_StopProcess()
+    protected void Server_StopProcess()
     {
-        if (m_ProcessTimer) m_ProcessTimer.Stop();
-        if (!m_IsProcessing) return;
-
         m_IsProcessing = false;
         SetSynchDirty();
     }
@@ -123,49 +76,36 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         return null;
     }
 
-    override void Server_ExecuteCycleTick()
+    protected void Server_ExecuteCycleTick()
     {
-        if (!m_IsProcessing)
-            return;
-
-        CN_OilDistillerConfig config = CN_OilDistillerConfig.Cast(CN_MachineConfigManager.GetInstance().LoadConfig("CN_OilDistiller"));
-        if (!config || !GetCompEM() || !GetCompEM().IsWorking())
+        CN_MachineConfig config = CN_MachineConfigManager.GetInstance().GetConfig("CN_OilDistiller");
+        if (!config)
         {
+            Print("[CN_DISTILL_LOG] Стоп: конфигурация CN_OilDistiller не загружена.");
             Server_StopProcess();
             if (GetCompEM()) GetCompEM().SwitchOff();
             return;
         }
 
-        // Защита от некорректной конфигурации и объёмов.
-        if (config.LiquidBurnVolumePerTick <= 0 || config.LiquidOutVolumePerTick <= 0 || config.LiquidWasteVolumePerTick <= 0 || config.WasteAmountPerTick <= 0 || config.WasteChance < 0 || config.WasteChance > 100 || config.RareChance < 0 || config.RareChance > 100 || (config.WasteChance + config.RareChance) > 100 || config.OutputClass == "" || config.RareClass == "" || config.WasteClass == "")
+        if (!GetCompEM() || !GetCompEM().IsWorking())
         {
-            Print("[CN_DISTILL_LOG] Стоп: конфигурация содержит недопустимые значения.");
+            Print("[CN_DISTILL_LOG] Стоп: энергосистема не работает.");
             Server_StopProcess();
-            if (GetCompEM()) GetCompEM().SwitchOff();
             return;
         }
 
         ItemBase inputContainer = ItemBase.Cast(FindAttachmentBySlotName("RecycleInput"));
-        if (!inputContainer || inputContainer.GetLiquidType() != LIQUID_CRUDE_OIL)
-        {
-            Server_StopProcess();
-            if (GetCompEM()) GetCompEM().SwitchOff();
-            return;
-        }
-
-        // Неполный остаток не перерабатываем: для любого результата требуется полный расход сырья.
-        float oilToBurn = config.LiquidBurnVolumePerTick;
-        if (inputContainer.GetQuantity() < oilToBurn)
-        {
-            Print("[CN_DISTILL_LOG] Стоп: остатка сырья недостаточно для полного цикла.");
-            Server_StopProcess();
-            if (GetCompEM()) GetCompEM().SwitchOff();
-            return;
-        }
+        if (!inputContainer || inputContainer.GetQuantity() <= 0 || inputContainer.GetLiquidType() != LIQUID_CRUDE_OIL) return;
 
         int mainLiquidType = GetLiquidIdFromName(config.OutputClass);
         int rareLiquidType = GetLiquidIdFromName(config.RareClass);
         int wasteLiquidType = GetLiquidIdFromName(config.WasteClass);
+
+        // 2. ПРОВЕРКА СЛОТА ОТХОДОВ (RecycleWaste) — если настроена жидкость
+        if (wasteLiquidType > 0)
+        {
+            if (!IsOutputContainerValid("RecycleWaste", wasteLiquidType)) return false;
+        }
 
         if (mainLiquidType <= 0 || rareLiquidType <= 0)
         {
@@ -175,24 +115,22 @@ modded class CN_OilDistiller : CN_MiningMachineBase
             return;
         }
 
-        // Оба топливных контейнера обязательны и должны принимать настроенные жидкости.
-        if (!IsOutputContainerValid("RecycleOutput", mainLiquidType) || !IsOutputContainerValid("RecycleRare", rareLiquidType))
+        if (config.LiquidBurnVolumePerTick <= 0 || config.LiquidOutVolumePerTick <= 0 || config.LiquidWasteVolumePerTick <= 0 || config.WasteAmountPerTick <= 0 || config.WasteChance < 0 || config.WasteChance > 100 || config.RareChance < 0 || config.RareChance > 100 || (config.WasteChance + config.RareChance) > 100 || config.OutputClass == "" || config.RareClass == "" || config.WasteClass == "")
         {
-            Print("[CN_DISTILL_LOG] Стоп: один из обязательных выходных контейнеров недоступен или несовместим.");
+            Print("[CN_DISTILL_LOG] Стоп: конфигурация содержит недопустимые значения.");
             Server_StopProcess();
             if (GetCompEM()) GetCompEM().SwitchOff();
             return;
         }
 
-        // Выбираем ровно один результат до начисления и до списания сырья.
-        float roll = Math.RandomFloat(0.0, 100.0);
+        float roll = Math.RandomFloatInclusive(0.0, 100.0);
         string targetSlot = "";
         int targetLiquidType = 0;
+        float resultAmount = 0;
         bool isLiquidWaste = wasteLiquidType > 0;
         ItemBase resultContainer = null;
         ItemBase solidWaste = null;
         bool createdSolidWaste = false;
-        float resultAmount = 0.0;
 
         if (roll < config.WasteChance)
         {
@@ -201,31 +139,15 @@ modded class CN_OilDistiller : CN_MiningMachineBase
                 targetSlot = "RecycleWaste";
                 targetLiquidType = wasteLiquidType;
                 resultAmount = config.LiquidWasteVolumePerTick;
-                resultContainer = ItemBase.Cast(FindAttachmentBySlotName(targetSlot));
-
-                if (!resultContainer || !Liquid.CanFillContainer(resultContainer, targetLiquidType))
-                {
-                    Print("[CN_DISTILL_LOG] Стоп: контейнер жидких отходов отсутствует или несовместим.");
-                    Server_StopProcess();
-                    if (GetCompEM()) GetCompEM().SwitchOff();
-                    return;
-                }
-
-                float freeWasteSpace = resultContainer.GetQuantityMax() - resultContainer.GetQuantity();
-                if (freeWasteSpace < resultAmount)
-                {
-                    Print("[CN_DISTILL_LOG] Стоп: в контейнере жидких отходов недостаточно места для полного цикла.");
-                    Server_StopProcess();
-                    if (GetCompEM()) GetCompEM().SwitchOff();
-                    return;
-                }
             }
             else
             {
-                // Если WasteClass не жидкость, он обязан быть корректным ItemBase-классом.
-                if (!GetGame().IsKindOf(config.WasteClass, "ItemBase") || !GetInventory())
+                // Твёрдый отход создаётся непосредственно в инвентаре станка.
+                // Не используем GetGame().IsKindOf() — фактическая возможность создания
+                // будет проверена самим CreateInInventory().
+                if (!GetInventory())
                 {
-                    Print("[CN_DISTILL_LOG] Стоп: WasteClass не является зарегистрированным предметом или инвентарь станка недоступен.");
+                    Print("[CN_DISTILL_LOG] Стоп: инвентарь станка недоступен.");
                     Server_StopProcess();
                     if (GetCompEM()) GetCompEM().SwitchOff();
                     return;
@@ -324,32 +246,22 @@ modded class CN_OilDistiller : CN_MiningMachineBase
         }
         else
         {
-            if (resultContainer.GetQuantity() <= 0)
-                resultContainer.SetLiquidType(targetLiquidType);
-
-            float oldResultQty = resultContainer.GetQuantity();
-            resultContainer.AddQuantity(resultAmount);
-            resultAdded = Math.AbsFloat(resultContainer.GetQuantity() - (oldResultQty + resultAmount)) < 0.01;
-
-            if (!resultAdded)
-            {
-                // При неуспешном начислении сырьё не списывается.
-                Print("[CN_DISTILL_LOG] Стоп: не удалось начислить полный объём результата.");
-                Server_StopProcess();
-                if (GetCompEM()) GetCompEM().SwitchOff();
-                return;
-            }
+            resultContainer.SetLiquidType(targetLiquidType);
+            resultContainer.SetQuantity(resultContainer.GetQuantity() + resultAmount);
+            resultAdded = true;
         }
 
-        // Единственное место списания сырья: один раз и только после подтверждённого результата.
-        inputContainer.AddQuantity(-oilToBurn);
-        Print("[CN_DISTILL_LOG] Цикл завершён. Сырьё списано один раз: " + oilToBurn + " мл.");
-
-        if (inputContainer.GetQuantity() <= 0)
+        if (!resultAdded)
         {
+            Print("[CN_DISTILL_LOG] Стоп: результат цикла не был начислен.");
             Server_StopProcess();
             if (GetCompEM()) GetCompEM().SwitchOff();
+            return;
         }
-    }
 
+        float inputOldQuantity = inputContainer.GetQuantity();
+        inputContainer.SetQuantity(inputOldQuantity - config.LiquidBurnVolumePerTick);
+
+        Print("[CN_DISTILL_LOG] Цикл завершён. Сырьё списано: " + config.LiquidBurnVolumePerTick.ToString() + ".");
+    }
 }
